@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">SOP_v1</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string-array name="sopproject">
+        <item>借用場地</item>
+        <item>網路繳費</item>
+        <item>宿舍申請</item>
+    </string-array>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_borrowspace">borrowspace</string>
+    <string name="title_activity_networkfee">networkfee</string>
+    <string name="title_activity_dormsign">dormsign</string>
+    <string name="title_activity_ballot">ballot</string>
+    <string name="oauth_create_certificate">必須先登入才能新增專案</string>
+    <string name="oauth_delete_certificate">必須先登入才能刪除專案</string>
+
+    <string name="oauth_create_step_certificate">必須先登入才能新增專案</string>
+    <string name="oauth_delete_step_certificate">必須先登入才能刪除專案</string>
+    <string name="oauth_edit_step_certificate">必須先登入才能編輯專案</string>
+    <string name="oauth_edit_step_copy">必須先登入才能複製專案</string>
+    <string name="title_activity_add_new_one">add_new_one</string>
+    <string name="title_activity_detail_step">DetailStepActivity</string>
+</resources>
