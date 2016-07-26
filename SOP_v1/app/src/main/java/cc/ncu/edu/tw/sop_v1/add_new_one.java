@@ -267,7 +267,7 @@ public class add_new_one extends ExpandableListActivity
 
 
         //從後端載入(get)資料
-        StringRequest apiRequest = new StringRequest(" http://140.115.3.188:3000/sop/v1/steps", new Response.Listener<String>()
+        StringRequest apiRequest = new StringRequest("http://140.115.3.188:3000/sop/v1/steps", new Response.Listener<String>()
         {
             @Override
             public void onResponse(String response)
@@ -429,10 +429,7 @@ public class add_new_one extends ExpandableListActivity
 private void initData()
 {
     String[] groupItems = new String[groupList.size()];
-    //String[][] childItems ={{"abcd","3","0000"},{},{"5"}};
     String[][] childItems = new String[groupList.size()][];
-    //String[] childItems ={"Child1","Child2","Child3"};
-
 
     //把groupList 和childList2D載入 groupItems 、childItems
     for(int i=0;i<groupList.size();i++)
@@ -453,7 +450,7 @@ private void initData()
 
     for (int i = 0; i < groupItems.length; i++)
     {
-        adapter.addChild(i, childItems[i]); ////childItems[i]
+        adapter.addChild(i, childItems[i]);
     }
 
     mExpandableListView.setAdapter(adapter);
@@ -967,7 +964,8 @@ private void initData()
                                 Map<String, Object> newEditItem = new HashMap<String, Object>();
                                 newEditItem.put(ITEM_NAME, editStepName.getText().toString());
                                 groupList.set(groupPosition - 1, newEditItem);
-                            } else
+                            }
+                            else
                             {
                                 Map<String, String> newEditSubItem = new HashMap<String, String>();
                                 newEditSubItem.put(ITEM_SUBNAME, editStepName.getText().toString());
@@ -975,8 +973,10 @@ private void initData()
                             }
 
                             //編輯步驟名稱後端所做的處理(put)
-                            for (int i = 0; i < StepCount; i++) {
-                                if (e[i].getLayer() == groupPosition && e[i].getSequence() == childPosition) {
+                            for (int i = 0; i < StepCount; i++)
+                            {
+                                if (e[i].getLayer() == groupPosition && e[i].getSequence() == childPosition)
+                                {
                                     editIndex = i;
                                     //做完調整後上傳的動作 (put)
                                     StringRequest putRequest = new StringRequest(Request.Method.PUT, "http://140.115.3.188:3000/sop/v1/steps/" + Integer.toString(e[editIndex].getId()), new Response.Listener<String>() {

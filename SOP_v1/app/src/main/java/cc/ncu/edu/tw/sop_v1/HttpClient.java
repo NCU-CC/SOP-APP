@@ -52,17 +52,17 @@ public class HttpClient
     }
 
     //用在MyAdapter中的HttpClient
-    public HttpClient(RequestQueue mQueue,String Access_token)
+    public HttpClient(RequestQueue mQueue,String accessToken)
     {
         this.mQueue = mQueue;
-        ACCESS_TOKEN =Access_token;
+        ACCESS_TOKEN = accessToken;
     }
 
     //用在add_new_one的HttpClient
-    public HttpClient(Step step[],String ACCESS_TOKEN,RequestQueue mQueue)
+    public HttpClient(Step step[],String accessToken,RequestQueue mQueue)
     {
         this.step = step;
-        this.ACCESS_TOKEN = ACCESS_TOKEN;
+        this.ACCESS_TOKEN = accessToken;
         this.mQueue = mQueue;
     }
 //======================================================================
@@ -627,9 +627,9 @@ public class HttpClient
 
 
     //將被複製的專案內的步驟上傳到後端
-    public void upLoadCopySteps(Step step)
+    public void upLoadCopySteps(final Step step)
     {
-        final Step stepItem = step;
+        //final Step stepItem = step;
 
         StringRequest stringRequest = new StringRequest(Request.Method.POST, "http://140.115.3.188:3000/sop/v1/steps", new Response.Listener<String>()
         {
@@ -641,7 +641,7 @@ public class HttpClient
                     Log.d("PostCopyItemSuccessful", response);
 
                     JSONObject object = new JSONObject(response);
-                    stepItem.setId(Integer.parseInt(object.getString("id")));
+                    step.setId(Integer.parseInt(object.getString("id")));
 
                 }catch (JSONException e)
                 {
@@ -669,27 +669,27 @@ public class HttpClient
             public Map<String, String> getParams() throws AuthFailureError
             {
                 Map<String, String> map = new HashMap<>();
-                map.put("action", stepItem.getContent());
-                map.put("items", stepItem.getItem());
-                map.put("prev", Integer.toString(stepItem.getLayer()));
-                map.put("next", Integer.toString(stepItem.getSequence()));
-                map.put("Flow_id", Integer.toString(stepItem.getId()));
-                map.put("PersonId", stepItem.getPerson());
-                map.put("UnitId", stepItem.getUnit());
-                map.put("PlaceId", stepItem.getPlace());
+                map.put("action", step.getContent());
+                map.put("items", step.getItem());
+                map.put("prev", Integer.toString(step.getLayer()));
+                map.put("next", Integer.toString(step.getSequence()));
+                map.put("Flow_id", Integer.toString(step.getId()));
+                map.put("PersonId", step.getPerson());
+                map.put("UnitId", step.getUnit());
+                map.put("PlaceId", step.getPlace());
 
 
                 //Log測試
-                Log.v("action", stepItem.getContent());
-                Log.v("items",stepItem.getItem());
+                Log.v("action", step.getContent());
+                Log.v("items",step.getItem());
 
-                Log.v("prevInner", Integer.toString(stepItem.getLayer()));
-                Log.v("nextInner",Integer.toString(stepItem.getSequence()));
-                Log.v("Flow_idInner", Integer.toString(stepItem.getBelong()));
+                Log.v("prevInner", Integer.toString(step.getLayer()));
+                Log.v("nextInner",Integer.toString(step.getSequence()));
+                Log.v("Flow_idInner", Integer.toString(step.getBelong()));
 
-                Log.v("PersonId", stepItem.getPerson());
-                Log.v("UnitId", stepItem.getUnit());
-                Log.v("PlaceId",stepItem.getPlace());
+                Log.v("PersonId", step.getPerson());
+                Log.v("UnitId", step.getUnit());
+                Log.v("PlaceId",step.getPlace());
 
                 return map;
             }
@@ -791,6 +791,39 @@ public class HttpClient
     {
         public void setPersonNameArray(String[] peopleNameArray);
     }
+
+
+
+
+    //刪除專案後,連帶刪除專按內的步驟
+    public void deleteStepsInProject(int id)
+    {
+        StringRequest deleteStepsInProjectRequest = new StringRequest(Request.Method.DELETE, "http://140.115.3.188:3000/sop/v1/steps/"+String.valueOf(id), new Response.Listener<String>()
+        {
+            @Override
+            public void onResponse(String response)
+            {
+                Log.d("deleteStepsInProject", response);
+            }
+        }, new Response.ErrorListener() {
+            public void onErrorResponse(VolleyError error)
+            {
+                Log.e("deleteStepsInPrjError", error.getMessage(), error);
+            }
+
+        })
+        {
+            public Map<String, String> getHeaders() throws AuthFailureError
+            {
+                Map<String, String> map = new HashMap<>();
+                map.put("Authorization", "Bearer"+ " "+ACCESS_TOKEN);
+                return map;
+            }
+        };
+
+        mQueue.add(deleteStepsInProjectRequest);
+    }
+
 
 
 

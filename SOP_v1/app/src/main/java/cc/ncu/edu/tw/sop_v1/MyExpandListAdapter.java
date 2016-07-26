@@ -18,17 +18,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by jason on 2016/7/16.
- */
 public class MyExpandListAdapter extends BaseExpandableListAdapter
 {
     Context ctxt = null;
-    //SparseArray<String[]> data = new SparseArray<>();
     List<String[]> data = new ArrayList<>();
     String[] groups = null;
-
-
 
     public MyExpandListAdapter(Context c, String[] groupitems)
     {
@@ -42,12 +36,6 @@ public class MyExpandListAdapter extends BaseExpandableListAdapter
     public String getChild(int groupPosition, int childPosition)
     {
         String[] childs = data.get(groupPosition);
-        /*
-        if (childs!=null)
-        {
-            Log.v("getChild",childs[childPosition]);
-        }
-        */
 
         if (childs == null)
         {
@@ -128,7 +116,7 @@ public class MyExpandListAdapter extends BaseExpandableListAdapter
     public int getChildrenCount(int groupPosition)
     {
         String[] childs = data.get(groupPosition);
-        //String[] childs = childsContent[groupPosition];
+
         if (childs == null)
         {
             return 0;
