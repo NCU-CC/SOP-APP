@@ -33,6 +33,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,15 +52,11 @@ public class MyAdapter extends BaseAdapter implements Filterable
 
     private List<Project> projectList;
 
-    /////////////////////////////////////////////////////////////////////////////////
-    //private Project[] p = new Project[100];
-    //////////////////////////////////////////////////////////////////////////////
-
     private Context mContext;
     private String[] keyString;
     private int[] valueViewID;
     private MyView myView;
-    private MainActivity mainActivity = new MainActivity();
+    private MainActivity mainActivity;
     private MyAdapter adapter;
 
     private LayoutInflater mInflater;
@@ -69,13 +66,8 @@ public class MyAdapter extends BaseAdapter implements Filterable
 
     RequestQueue mQueue;
 
-
-
-    //複製專案所存放的Step
-    private Step[] step =new Step[30];
-    private int stepCount=0;
-    private int stepIndex=0;
-    private int getIdIndex;  //存放新複製的專案ID
+    //存放新複製專案的ID
+    private int copyProjectId;
 
     //編輯專案的元件初始化
     private EditText editProjectName;
@@ -92,16 +84,21 @@ public class MyAdapter extends BaseAdapter implements Filterable
         valueViewID = new int[to.length];
 
         mainActivity = m;
-        //this.p = p;
         this.projectList = projectList;
+
         adapter =mainActivity.getMainActivityAdapter();
-
-
         mQueue = Volley.newRequestQueue(mContext);
 
         System.arraycopy(from, 0, keyString, 0, from.length);
         System.arraycopy(to, 0, valueViewID, 0, to.length);
     }
+
+
+
+    public void setProjectList(List<Project> newProjectList) {projectList = newProjectList;}
+    public List<Project> getProjectList(){return projectList;}
+    public void setmList(ArrayList<Map<String,Object>> newMList){mAppList = newMList;}
+    public ArrayList<Map<String,Object>> getmList(){return mAppList;}
 
 
     // 回傳這個 List 有幾個 item
@@ -141,18 +138,19 @@ public class MyAdapter extends BaseAdapter implements Filterable
         if (appInfo != null)
         {
             String title = (String) appInfo.get(keyString[0]);
-            int did = (Integer)appInfo.get(keyString[1]);
-            int eid = (Integer)appInfo.get(keyString[2]);
-            int cid = (Integer)appInfo.get(keyString[3]);
-            myView.title.setText(title);
 
-            myView.delete.setImageDrawable(myView.delete.getResources().getDrawable(did));
-            myView.edit.setImageDrawable(myView.edit.getResources().getDrawable(eid));
-            myView.cpy.setImageDrawable(myView.cpy.getResources().getDrawable(cid));
+                int did = (Integer)appInfo.get(keyString[1]);
+                int eid = (Integer)appInfo.get(keyString[2]);
+                int cid = (Integer)appInfo.get(keyString[3]);
+                myView.title.setText(title);
 
-            myView.delete.setOnClickListener(new ButtonDelete_Click(position));
-            myView.edit.setOnClickListener(new ButtonEdit_Click(position));
-            myView.cpy.setOnClickListener(new ButtonCopy_Click(position));
+                myView.delete.setImageDrawable(myView.delete.getResources().getDrawable(did));
+                myView.edit.setImageDrawable(myView.edit.getResources().getDrawable(eid));
+                myView.cpy.setImageDrawable(myView.cpy.getResources().getDrawable(cid));
+
+                myView.delete.setOnClickListener(new ButtonDelete_Click(position));
+                myView.edit.setOnClickListener(new ButtonEdit_Click(position));
+                myView.cpy.setOnClickListener(new ButtonCopy_Click(position));
 
         }
 
@@ -232,14 +230,12 @@ public class MyAdapter extends BaseAdapter implements Filterable
 
     }
 
-
     //判斷篩選過後專案的Flow_id
-    public ArrayList<Map<String,Object>> getAfterFilterList()
-    {
-        return afterFilterList;
-    }
+    public ArrayList<Map<String,Object>> getAfterFilterList() {return afterFilterList;}
 
-    //============================================================//
+
+
+
     //delete被按的處理
     class ButtonDelete_Click implements View.OnClickListener
     {
@@ -257,8 +253,7 @@ public class MyAdapter extends BaseAdapter implements Filterable
 
             if (vid == myView.delete.getId())
             {
-
-                if(mainActivity.getACCESS_TOKEN()=="")
+                if(mainActivity.getACCESS_TOKEN() == "")
                 {
                     Toast.makeText(mContext,R.string.oauth_delete_certificate,Toast.LENGTH_LONG).show();
                 }
@@ -274,15 +269,8 @@ public class MyAdapter extends BaseAdapter implements Filterable
                                 public void onClick(DialogInterface dialog, int id)
                                 {
                                     final int ID ;
-                                    //mAppList.remove(position);
-                                    //projectList.remove(position);
-                                    //////////////////////adapter = new MyAdapter(mContext, mAppList, R.layout.sop_list_items, new String[]{"txtView", "delete", "edit", "copy"}, new int[]{R.id.txtView, R.id.delete, R.id.edit, R.id.copy}, mainActivity,projectList);
-                                    //mAppList.remove(position);
-                                    //notifyDataSetChanged();
-                                    //mainActivity.getListView().setAdapter(adapter);
-                                    mainActivity.setMyAdapterToMainActivity(adapter,projectList,position,0,"");
+                                    mainActivity.setMyAdapterToMainActivity(position,0,"");
                                     ID = mainActivity.getRealId();
-
 
 
                                     //delete專案後端所做的變更
@@ -291,29 +279,26 @@ public class MyAdapter extends BaseAdapter implements Filterable
                                         @Override
                                         public void onResponse(String response)
                                         {
-                                            Log.d("DeleteSuccessful", response);
+                                            Log.d("DeleteProjectSuccess", response);
                                         }
-                                    }, new Response.ErrorListener() {
+                                    }, new Response.ErrorListener()
+                                    {
                                         public void onErrorResponse(VolleyError error)
                                         {
-                                            Log.e("DeleteErrorHappen", error.getMessage(), error);
+                                            Log.e("DeleteProjectError", error.getMessage(), error);
                                         }
 
                                     })
                                     {
                                         public Map<String, String> getHeaders() throws AuthFailureError
                                         {
-                                            Map<String, String> map = new HashMap<String, String>();
+                                            Map<String, String> map = new HashMap<>();
                                             map.put("Authorization", "Bearer"+ " " +mainActivity.getACCESS_TOKEN());
                                             return map;
                                         }
                                     };
 
                                     mQueue.add(stringRequest);
-
-
-
-
 
 
                                     //刪除專案,連帶也要刪除對應的步驟
@@ -362,17 +347,12 @@ public class MyAdapter extends BaseAdapter implements Filterable
                                     };
 
                                     mQueue.add(getStepRequest);
-
-
-
-
-
-
-
                                 }
                             }
-                    ).setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
+                    ).setNegativeButton("取消", new DialogInterface.OnClickListener()
+                    {
+                        public void onClick(DialogInterface dialog, int id)
+                        {
 
                         }
                     });
@@ -385,13 +365,9 @@ public class MyAdapter extends BaseAdapter implements Filterable
         }
     }
 
-    //更新MainActivity 的List
-    public ArrayList<Map<String,Object>> getRenewList()
-    {
-        return mAppList;
-    }
 
-    //=======================================================================//
+
+
     //edit被按的處理
     class ButtonEdit_Click implements View.OnClickListener
     {
@@ -427,24 +403,9 @@ public class MyAdapter extends BaseAdapter implements Filterable
                                 {
                                     int ID ;
                                     editProjectName = (EditText) ((AlertDialog) dialog).findViewById(R.id.edtProjectName);
-/*
-                                    Map<String,Object> newItem = new HashMap();
-                                    newItem.put("txtView",editProjectName.getText().toString());
-                                    newItem.put("delete",R.drawable.delete);
-                                    newItem.put("edit", R.drawable.edit);
-                                    newItem.put("copy", R.drawable.copy);
-
-                                    mAppList.set(position, newItem);
-                                    projectList.get(position).setContent(editProjectName.getText().toString());
-                                    adapter = new MyAdapter(mContext, mAppList, R.layout.sop_list_items, new String[]{"txtView", "delete", "edit", "copy"}, new int[]{R.id.txtView, R.id.delete, R.id.edit, R.id.copy}, mainActivity,projectList);
-*/
-                                    mainActivity.setMyAdapterToMainActivity(adapter,projectList,position,1,editProjectName.getText().toString());
+                                    mainActivity.setMyAdapterToMainActivity(position,1,editProjectName.getText().toString());
                                     ID=projectList.get(mainActivity.getRealPosition()).getProjectId();
 
-
-                                    //notifyDataSetChanged();
-                                    //mainActivity.getListView().setAdapter(adapter);
-                                    //p[position].setContent(editProjectName.getText().toString());
 
                                     //編輯專案名稱後,後端坐的處理
                                     StringRequest stringRequest = new StringRequest(Request.Method.PUT, "http://140.115.3.188:3000/sop/v1/processes/"+String.valueOf(ID), new Response.Listener<String>()
@@ -456,12 +417,14 @@ public class MyAdapter extends BaseAdapter implements Filterable
 
                                         }
                                     }, new Response.ErrorListener(){
-                                        public void onErrorResponse(VolleyError error) {
+                                        public void onErrorResponse(VolleyError error)
+                                        {
                                             Log.e("ErrorHappen", error.getMessage(), error);
                                         }
 
                                     })
-                                    { public Map<String, String> getHeaders() throws AuthFailureError
+                                    {
+                                        public Map<String, String> getHeaders() throws AuthFailureError
                                         {
                                             Map<String, String> map = new HashMap<String, String>();
                                             map.put("Authorization", "Bearer"+" "+mainActivity.getACCESS_TOKEN());
@@ -492,13 +455,13 @@ public class MyAdapter extends BaseAdapter implements Filterable
                     AlertDialog alert = builder.create();
                     alert.show();
                 }
-                //Log.v("edit happened","you click edit button");
             }
         }
     }
 
 
-//====================================================================================================//
+
+
 
     //copy被按的處理
     class ButtonCopy_Click implements View.OnClickListener
@@ -529,135 +492,85 @@ public class MyAdapter extends BaseAdapter implements Filterable
                     builder.setCancelable(false);
 
                     builder.setPositiveButton("確定", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            //Map<String, Object> copyItem = new HashMap<>();
-                            //copyItem.put("txtView", projectList.get(position).getProjectContent());
-                            //copyItem.put("delete", R.drawable.delete);
-                            //copyItem.put("edit", R.drawable.edit);
-                            //copyItem.put("copy", R.drawable.copy);
+                        public void onClick(DialogInterface dialog, int id)
+                        {
+                            mainActivity.setMyAdapterToMainActivity(position, 2, "");
 
-                            //final Project project = new Project(mAppList.size(), 0, projectList.get(position).getProjectContent());
-                            //getIdIndex =mAppList.size();
-                            //mAppList.add(copyItem);
-                            //projectList.add(project);
-                            //notifyDataSetChanged();
-                            ////////////////////////////adapter = new MyAdapter(mContext, mAppList, R.layout.sop_list_items, new String[]{"txtView", "delete", "edit", "copy"}, new int[]{R.id.txtView, R.id.delete, R.id.edit, R.id.copy}, mainActivity, projectList);
-                            mainActivity.setMyAdapterToMainActivity(adapter,projectList,position,2,"");
-                            //mainActivity.getListView().setAdapter(adapter);
-
-
-                            //將複製專案的結果post到後端
-                            StringRequest postProjectRequest = new StringRequest(Request.Method.POST, "http://140.115.3.188:3000/sop/v1/processes/", new Response.Listener<String>() {
-                                @Override
-                                public void onResponse(String response)
+                            HttpClient httpClient = new HttpClient(mQueue, mainActivity.getACCESS_TOKEN());
+                            httpClient.searchCopyStepAndPost(mainActivity.getProjectList().get(mainActivity.getRealPosition()).getProjectContent(), new HttpClient.searchCopyStepAndPostListener() {
+                                public void getCopyPostProjectId(int id)
                                 {
-                                    try
-                                    {
-                                        Log.d("postProjectRequestSucce", response);
-                                        JSONObject object =new JSONObject(response);
-                                        mainActivity.getProjectList().get(mainActivity.getProjectList().size()-1).setProjectId(Integer.parseInt(object.getString("id")));
-
-                                    } catch (JSONException e)
-                                    {
-                                        e.printStackTrace();
-                                    }
-
-                                }
-                            }, new Response.ErrorListener()
-                            {
-                                public void onErrorResponse(VolleyError error)
-                                {
-                                    Log.e("postPrjRequestErrHappen", error.getMessage(), error);
-                                }
-
-                            })
-                            {
-                                public Map<String, String> getHeaders() throws AuthFailureError
-                                {
-                                    Map<String, String> map = new HashMap<String, String>();
-                                    map.put("Authorization", "Bearer" + " " + mainActivity.getACCESS_TOKEN());
-                                    return map;
-                                }
+                                    copyProjectId = id;
+                                    Log.v("copyProjectId", Integer.toString(id));
+                                    mainActivity.setCopiedProjectId(copyProjectId);
 
 
-                                public Map<String, String> getParams() throws AuthFailureError
-                                {
-                                    Map<String, String> map = new HashMap<String, String>();
-                                    map.put("name", mainActivity.getProjectList().get(mainActivity.getRealPosition()).getProjectContent());
-                                    return map;
-                                }
-                            };
-
-                            mQueue.add(postProjectRequest);
-
-//===================================================================================================//
-                            //找尋被複製的專案裡面有哪些步驟
-                            StringRequest getStepRequest = new StringRequest("http://140.115.3.188:3000/sop/v1/steps", new Response.Listener<String>() {
-                                @Override
-                                public void onResponse(String response)
-                                {
-                                    Log.d("getStepRequestSucces", response);
-
-                                    try
-                                    {
-                                        JSONArray array = new JSONArray(response);
-                                        for (int i = 0; i < array.length(); i++)
+                                    //找尋被複製的專案裡面有哪些步驟
+                                    StringRequest getStepRequest = new StringRequest("http://140.115.3.188:3000/sop/v1/steps", new Response.Listener<String>() {
+                                        @Override
+                                        public void onResponse(String response)
                                         {
-                                            if (mainActivity.getProjectList().get(mainActivity.getRealPosition()).getProjectId() == Integer.parseInt(array.getJSONObject(i).getString("flow_id")))
+                                            //存放被複製的步驟ArrayList
+                                            ArrayList<Step> step = new ArrayList<>();
+                                            Log.d("getStepRequestSucces", response);
+
+                                            try {
+                                                JSONArray array = new JSONArray(response);
+                                                int copiedStepIndex = 0;
+                                                for (int i = 0; i < array.length(); i++) {
+                                                    if (mainActivity.getProjectList().get(mainActivity.getRealPosition()).getProjectId() == Integer.parseInt(array.getJSONObject(i).getString("flow_id")))
+                                                    {
+                                                        step.add(new Step(Integer.parseInt(array.getJSONObject(i).getString("prev")), Integer.parseInt(array.getJSONObject(i).getString("next")), array.getJSONObject(i).getString("action"), copyProjectId, 0));
+                                                        step.get(copiedStepIndex).setItem(array.getJSONObject(i).getString("items"));
+
+                                                        Log.v("CopyProjectId", Integer.toString(copyProjectId));
+
+                                                        step.get(copiedStepIndex).setContent(array.getJSONObject(i).getString("items"), array.getJSONObject(i).getString("UnitId"), array.getJSONObject(i).getString("PersonId"), array.getJSONObject(i).getString("PlaceId"));
+                                                        //Log.v("被複製的步驟內容", step.get(copiedStepIndex).getContent());
+                                                        //Log.v("被複製的步驟物品", step.get(copiedStepIndex).getItem());
+                                                        //Log.v("被複製的步驟單位", step.get(copiedStepIndex).getUnit());
+                                                        //Log.v("被複製的步驟人員", step.get(copiedStepIndex).getPerson());
+                                                        //Log.v("被複製的步驟地點", step.get(copiedStepIndex).getPlace());
+
+                                                        HttpClient httpClient = new HttpClient(mQueue, mainActivity.getACCESS_TOKEN());
+                                                        httpClient.upLoadCopySteps(step.get(copiedStepIndex));
+
+                                                        copiedStepIndex++;
+                                                    }
+                                                }
+                                            } catch (JSONException e)
                                             {
-                                                step[stepIndex] = new Step(Integer.parseInt(array.getJSONObject(i).getString("prev")), Integer.parseInt(array.getJSONObject(i).getString("next")), array.getJSONObject(i).getString("action"), projectList.get(getIdIndex).getProjectId(), Integer.parseInt(array.getJSONObject(i).getString("id")));
-                                                step[stepIndex].setItem(array.getJSONObject(i).getString("items"));
-
-                                                Log.v("prevOut",array.getJSONObject(i).getString("prev"));
-                                                Log.v("nextOut",array.getJSONObject(i).getString("next"));
-                                                Log.v("Flow_idOut", Integer.toString(mainActivity.getProjectList().get(getIdIndex).getProjectId()));
-
-
-                                                step[stepIndex].setContent(array.getJSONObject(i).getString("items"), array.getJSONObject(i).getString("UnitId"), array.getJSONObject(i).getString("PersonId"), array.getJSONObject(i).getString("PlaceId"));
-                                                Log.v("被複製的步驟內容", step[stepIndex].getContent());
-                                                Log.v("被複製的步驟物品", step[stepIndex].getItem());
-                                                Log.v("被複製的步驟單位", step[stepIndex].getUnit());
-                                                Log.v("被複製的步驟人員", step[stepIndex].getPerson());
-                                                Log.v("被複製的步驟地點", step[stepIndex].getPlace());
-
-                                                HttpClient httpClient = new HttpClient(mQueue,mainActivity.getACCESS_TOKEN());
-                                                httpClient.upLoadCopySteps(step[stepIndex]);
-
-                                                stepCount++;
-                                                stepIndex++;
-
+                                                e.printStackTrace();
                                             }
                                         }
-
-                                    } catch (JSONException e)
+                                    }, new Response.ErrorListener()
                                     {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            }, new Response.ErrorListener() {
-                                @Override
-                                public void onErrorResponse(VolleyError error) {
-                                    Log.e("getStepRequestErrHappen", error.getMessage(), error);
-                                }
-                            }) {
-                                @Override
-                                public Map<String, String> getHeaders() throws AuthFailureError
-                                {
-                                    HashMap<String, String> map = new HashMap<String, String>();
-                                    map.put("X-Ncu-Api-Token", "e763cac7e011b72f1e5d8668cb661070bd130f2109c920a76ca4adb3e540018fcf69115961abae35b0c23a4d27dd7782acce7b75c9dd066053eb0408cb4575b9");
-                                    return map;
-                                }
-                            };
+                                        @Override
+                                        public void onErrorResponse(VolleyError error)
+                                        {
+                                            Log.e("getStepRequestErrHappen", error.getMessage(), error);
+                                        }
+                                    }) {
+                                        @Override
+                                        public Map<String, String> getHeaders() throws AuthFailureError
+                                        {
+                                            HashMap<String, String> map = new HashMap<>();
+                                            map.put("X-Ncu-Api-Token", "e763cac7e011b72f1e5d8668cb661070bd130f2109c920a76ca4adb3e540018fcf69115961abae35b0c23a4d27dd7782acce7b75c9dd066053eb0408cb4575b9");
+                                            return map;
+                                        }
+                                    };
 
-                            mQueue.add(getStepRequest);
+                                    mQueue.add(getStepRequest);
+
+                                }
+                            });
 
 
                         }
                     });
 
 
-                    builder.setNegativeButton("取消", new DialogInterface.OnClickListener()
-                    {
+                    builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int id)
                         {
                         }
@@ -677,6 +590,11 @@ public class MyAdapter extends BaseAdapter implements Filterable
 
 
         }
+    }
+
+    public int getCopiedProjectId()
+    {
+        return copyProjectId;
     }
 
 

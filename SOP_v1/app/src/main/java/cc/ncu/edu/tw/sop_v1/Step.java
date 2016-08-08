@@ -12,7 +12,7 @@ public class Step implements Serializable
     private int layer=0;        //為第幾層
     private int sequence;    //在層中的順序
     private String content;
-    private int belong;     //所屬的project id
+    private int belong;     //所屬的project id (flow id )
     private int id;         //該步驟在後端的id
 
     private boolean exist;

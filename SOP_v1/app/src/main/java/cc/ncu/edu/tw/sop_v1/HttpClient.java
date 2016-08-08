@@ -18,6 +18,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -375,14 +376,62 @@ public class HttpClient
         return places_id;
     }
 
-/*
-    //做輸入文字 變成 people  id的轉換
-    public int switchToPeople_id(String text)
+    private searchCopyStepAndPostListener searchCopyStepAndPostListener;
+    public interface searchCopyStepAndPostListener
     {
-
-        return 0;
+        public void getCopyPostProjectId(int id);
     }
- */
+
+
+    //post複製的專案到後端並取得專案的ID (步驟的Flow id)
+    public void searchCopyStepAndPost(final String copyProjectName,final searchCopyStepAndPostListener searchCopyStepAndPostListener)
+    {
+        StringRequest postCopyProjectRequest = new StringRequest(Request.Method.POST, "http://140.115.3.188:3000/sop/v1/processes/", new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response)
+            {
+                try
+                {
+                    Log.d("postProjectRequestSucce", response);
+                    JSONObject object =new JSONObject(response);
+                    searchCopyStepAndPostListener.getCopyPostProjectId(Integer.parseInt(object.getString("id").toString()));
+
+                } catch (JSONException e)
+                {
+                    e.printStackTrace();
+                }
+
+            }
+        }, new Response.ErrorListener()
+        {
+            public void onErrorResponse(VolleyError error)
+            {
+                Log.e("postPrjRequestErrHappen", error.getMessage(), error);
+            }
+
+        })
+        {
+            public Map<String, String> getHeaders() throws AuthFailureError
+            {
+                Map<String, String> map = new HashMap<String, String>();
+                map.put("Authorization", "Bearer" + " " + ACCESS_TOKEN);
+                return map;
+            }
+
+
+            public Map<String, String> getParams() throws AuthFailureError
+            {
+                Map<String, String> map = new HashMap<>();
+                map.put("name",copyProjectName+"(複製)");
+                return map;
+            }
+        };
+
+        mQueue.add(postCopyProjectRequest);
+    }
+
+
+
 
     //get Step資料時將PersonId 轉換成人名
     public void switchPersonIdToName(int id,final GetPeopleResponseListener getPeopleResponseListener)
@@ -629,8 +678,6 @@ public class HttpClient
     //將被複製的專案內的步驟上傳到後端
     public void upLoadCopySteps(final Step step)
     {
-        //final Step stepItem = step;
-
         StringRequest stringRequest = new StringRequest(Request.Method.POST, "http://140.115.3.188:3000/sop/v1/steps", new Response.Listener<String>()
         {
             @Override
@@ -642,8 +689,8 @@ public class HttpClient
 
                     JSONObject object = new JSONObject(response);
                     step.setId(Integer.parseInt(object.getString("id")));
-
-                }catch (JSONException e)
+                }
+                catch (JSONException e)
                 {
                     e.printStackTrace();
                 }
@@ -655,13 +702,13 @@ public class HttpClient
             {
                 Log.e("PostCopyItemErrorHappen", error.getMessage(), error);
             }
-         })
+        })
         {
             public Map<String, String> getHeaders() throws AuthFailureError
             {
                 Map<String, String> map = new HashMap<>();
                 map.put("Authorization", "Bearer " + ACCESS_TOKEN);
-                Log.v("GetAccessToken", ACCESS_TOKEN);
+                //Log.v("GetAccessToken", ACCESS_TOKEN);
                 return map;
             }
 
@@ -673,7 +720,7 @@ public class HttpClient
                 map.put("items", step.getItem());
                 map.put("prev", Integer.toString(step.getLayer()));
                 map.put("next", Integer.toString(step.getSequence()));
-                map.put("Flow_id", Integer.toString(step.getId()));
+                map.put("Flow_id", Integer.toString(step.getBelong()));
                 map.put("PersonId", step.getPerson());
                 map.put("UnitId", step.getUnit());
                 map.put("PlaceId", step.getPlace());
@@ -682,11 +729,9 @@ public class HttpClient
                 //Log測試
                 Log.v("action", step.getContent());
                 Log.v("items",step.getItem());
-
                 Log.v("prevInner", Integer.toString(step.getLayer()));
                 Log.v("nextInner",Integer.toString(step.getSequence()));
                 Log.v("Flow_idInner", Integer.toString(step.getBelong()));
-
                 Log.v("PersonId", step.getPerson());
                 Log.v("UnitId", step.getUnit());
                 Log.v("PlaceId",step.getPlace());

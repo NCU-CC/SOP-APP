@@ -28,6 +28,7 @@ import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.SimpleExpandableListAdapter;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
@@ -58,16 +59,9 @@ public class add_new_one extends ExpandableListActivity
     private static final String ITEM_NAME = "Item Name";
     private static final String ITEM_SUBNAME = "Item Subname";
 
-
     private ExpandableListView mExpandableListView = null;
 
-
     private Step[] e = new Step[30];
-
-    ////////////////////////////////////////////////
-    //private ExpandableListAdapter mExpaListAdap;
-    ////////////////////////////////////////////////////
-    //private ExpandableListView mExpaListView;
     private Context mContext;
 
     //執行時存入的list
@@ -98,21 +92,21 @@ public class add_new_one extends ExpandableListActivity
     protected void onCreate(Bundle savedInstanceState)
     {
         //初始化groupList  child2DList
-        groupList.clear();
-        childList2D.clear();
+        //groupList.clear();
+        //childList2D.clear();
 
         getDelegate().installViewFactory();
         getDelegate().onCreate(savedInstanceState);
         getDelegate().setContentView(R.layout.activity_add_new_one);
-        //setContentView(R.layout.activity_add_new_one);
         super.onCreate(savedInstanceState);
-
 
         mExpandableListView = getExpandableListView();
 
 
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionbar(toolbar);
+        getDelegate().getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab_add_new_one);
         fab.setOnClickListener(new View.OnClickListener()
@@ -252,10 +246,6 @@ public class add_new_one extends ExpandableListActivity
             }
         });
 
-
-        //繼承ExpandableListView後id為固定android:list所以用getExpandableListView取得id
-        //mExpaListView = getExpandableListView();
-
         //初始化mQueue
         mQueue = Volley.newRequestQueue(add_new_one.this);
 
@@ -264,6 +254,7 @@ public class add_new_one extends ExpandableListActivity
         bundle = it.getExtras();
         Flow_id = bundle.getInt("Flow_id");
         ACCESS_TOKEN = bundle.getString("Access_token");
+        getDelegate().setTitle(bundle.getString("selectProject"));
 
 
         //從後端載入(get)資料
@@ -283,7 +274,6 @@ public class add_new_one extends ExpandableListActivity
                         if(Integer.parseInt(array.getJSONObject(i).getString("flow_id")) == Flow_id)
                         {
                             e[index] = new Step(Integer.parseInt(array.getJSONObject(i).getString("prev")),Integer.parseInt(array.getJSONObject(i).getString("next")),array.getJSONObject(i).getString("action"),Integer.parseInt(array.getJSONObject(i).getString("flow_id")),Integer.parseInt(array.getJSONObject(i).getString("id")));
-
 
                             //設定MaxLayer
                             if(e[index].getLayer() > MaxLayer)
@@ -372,17 +362,6 @@ public class add_new_one extends ExpandableListActivity
                 //設定MyExpandListAdapter
                 initData();
 
-/*
-                //設定ExpandableListAdapter
-                mExpaListAdap = new SimpleExpandableListAdapter(add_new_one.this, groupList, android.R.layout.simple_expandable_list_item_2, new String[]{ITEM_NAME}
-                        , new int[]{android.R.id.text1}, childList2D, android.R.layout.simple_expandable_list_item_2, new String[]{ITEM_SUBNAME},
-                        new int[]{android.R.id.text1});
-
-                mExpaListView.setAdapter(mExpaListAdap);
-*/
-
-
-
             }
         }, new Response.ErrorListener()
         {
@@ -404,13 +383,9 @@ public class add_new_one extends ExpandableListActivity
 
         mQueue.add(apiRequest);
 
-
-
         //註冊能夠接收Context Menu事件的元件
         registerForContextMenu(mExpandableListView);
         mContext = add_new_one.this;
-
-
 
 
         //設判斷長按父層或子層的監聽器
@@ -420,6 +395,25 @@ public class add_new_one extends ExpandableListActivity
             @Override
             public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id)
             {
+                int temp=0;
+                //找出所按位置step的 e[i]
+                for(int i=0;i<StepCount;i++)
+                {
+                    if(e[i].getLayer() == groupPosition+1)
+                    {
+                        temp =i;
+                        break;
+                    }
+                }
+                Intent it = new Intent();
+                it.setClass(add_new_one.this, DetailStepActivity.class);
+                Bundle bundleNext = new Bundle();
+                bundleNext.putInt("StepID", e[temp].getId());
+                bundleNext.putString("ACCESS_TOKEN", ACCESS_TOKEN);
+                bundleNext.putString("selectProjectAndStep",bundle.getString("selectProject")+"  "+e[temp].getContent());
+                it.putExtras(bundleNext);
+
+                startActivity(it);
                 return true; // 設為 true為不能收合
             }
         });
@@ -460,6 +454,7 @@ private void initData()
     {
         mExpandableListView.expandGroup(i);
     }
+
     mExpandableListView.setGroupIndicator(null);
 }
 
@@ -494,10 +489,11 @@ private void initData()
                             }
                         }
 
-                        Bundle bundle = new Bundle();
-                        bundle.putInt("StepID", e[temp].getId());
-                        bundle.putString("ACCESS_TOKEN",ACCESS_TOKEN);
-                        it.putExtras(bundle);
+                        Bundle bundleNext = new Bundle();
+                        bundleNext.putInt("StepID", e[temp].getId());
+                        bundleNext.putString("ACCESS_TOKEN", ACCESS_TOKEN);
+                        bundleNext.putString("selectProjectAndStep",bundle.getString("selectProject")+"  "+e[temp].getContent());
+                        it.putExtras(bundleNext);
                         startActivity(it);
                         break;
                 }
@@ -512,7 +508,7 @@ private void initData()
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo)
     {
         super.onCreateContextMenu(menu, v, menuInfo);
-        if(v==mExpandableListView)
+        if(v==mExpandableListView && ACCESS_TOKEN.length() != 0)
         {
             if(menu.size()==0)
             {
@@ -520,6 +516,21 @@ private void initData()
                 inflater.inflate(R.menu.context_menu_expandable_listview,menu);
             }
         }
+        else if(ACCESS_TOKEN.length() == 0)
+        {
+            Toast.makeText(this, "必須先登入才能對步驟進行操作", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
+        switch (item.getItemId())
+        {
+            case android.R.id.home:
+                onBackPressed();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
 
@@ -530,94 +541,271 @@ private void initData()
         int id = item.getItemId();
         switch (id)
         {
-            case R.id.contextMenuItemLook:
-                Intent it = new Intent();
-                it.setClass(add_new_one.this, DetailStepActivity.class);
-                int temp=0;
-                //找出所按位置step的 e[i]
-                for(int i=0;i<StepCount;i++)
-                {
-                    if(e[i].getLayer()==groupPosition && e[i].getSequence()==childPosition)
-                    {
-                        temp =i;
-                        break;
-                    }
-                }
+                //新增平行步驟
+                case R.id.contextMenuItemAddParallel:
+                        final View addCommonStepLayout = LayoutInflater.from(add_new_one.this).inflate(R.layout.add_step_dialog, null);
+                        AlertDialog.Builder builder = new AlertDialog.Builder(add_new_one.this);
+                        builder.setTitle("新增平行步驟");
+                        builder.setView(addCommonStepLayout);
+                        builder.setCancelable(false);
 
-                Bundle bundle = new Bundle();
-                bundle.putInt("StepID", e[temp].getId());
-                bundle.putString("ACCESS_TOKEN", ACCESS_TOKEN);
-                it.putExtras(bundle);
-                Log.v("StepId",Integer.toString(e[temp].getId()));
+                        builder.setPositiveButton("確定", new DialogInterface.OnClickListener() {
+                            EditText mEdtStepName;
+                            //EditText mEdtStepExam;
+                            //Spinner mSelectUnit;
+                            //EditText mEdtPeople;
+                            //Spinner mSelectPlace;
+
+                            //暫時紀錄第幾個step的順序要改變
+                            int temp;
 
 
+                            public void onClick(DialogInterface dialog, int id)
+                            {
+                                mEdtStepName = (EditText) ((AlertDialog) dialog).findViewById(R.id.edtStepName);
+                                //mEdtStepExam = (EditText) ((AlertDialog) dialog).findViewById(R.id.edtStepExam);
+                                //mSelectUnit = (Spinner) ((AlertDialog) dialog).findViewById(R.id.units_spinner);
+                                //mEdtPeople = (EditText) ((AlertDialog) dialog).findViewById(R.id.edtPeople);
+                                //mSelectPlace = (Spinner) ((AlertDialog) dialog).findViewById(R.id.places_spinner);
 
 
-                startActivity(it);
-                break;
-
-            //新增平行步驟
-            case R.id.contextMenuItemAddParallel:
-                if(ACCESS_TOKEN.length()==0)
-                {
-                    Toast.makeText(mContext,"必須先登入才能新增平行步驟",Toast.LENGTH_SHORT).show();
-                }
-                else
-                {
-                    final View addCommonStepLayout = LayoutInflater.from(add_new_one.this).inflate(R.layout.add_step_dialog, null);
-                    AlertDialog.Builder builder = new AlertDialog.Builder(add_new_one.this);
-                    builder.setTitle("新增平行步驟");
-                    builder.setView(addCommonStepLayout);
-                    builder.setCancelable(false);
-
-                    builder.setPositiveButton("確定", new DialogInterface.OnClickListener() {
-                        EditText mEdtStepName;
-                        //EditText mEdtStepExam;
-                        //Spinner mSelectUnit;
-                        //EditText mEdtPeople;
-                        //Spinner mSelectPlace;
-
-                        //暫時紀錄第幾個step的順序要改變
-                        int temp;
+                                e[index] = new Step(groupPosition, childPosition + 1, mEdtStepName.getText().toString(), Flow_id, 0);
+                                //e[index].setContent(mEdtStepExam.getText().toString(), mSelectUnit.getSelectedItem().toString(), mEdtPeople.getText().toString(), mSelectPlace.getSelectedItem().toString());
+                                index++;
 
 
-                        public void onClick(DialogInterface dialog, int id)
-                        {
-                            mEdtStepName = (EditText) ((AlertDialog) dialog).findViewById(R.id.edtStepName);
-                            //mEdtStepExam = (EditText) ((AlertDialog) dialog).findViewById(R.id.edtStepExam);
-                            //mSelectUnit = (Spinner) ((AlertDialog) dialog).findViewById(R.id.units_spinner);
-                            //mEdtPeople = (EditText) ((AlertDialog) dialog).findViewById(R.id.edtPeople);
-                            //mSelectPlace = (Spinner) ((AlertDialog) dialog).findViewById(R.id.places_spinner);
-
-
-                            e[index] = new Step(groupPosition, childPosition + 1, mEdtStepName.getText().toString(), Flow_id, 0);
-                            //e[index].setContent(mEdtStepExam.getText().toString(), mSelectUnit.getSelectedItem().toString(), mEdtPeople.getText().toString(), mSelectPlace.getSelectedItem().toString());
-                            index++;
-
-
-                            //新增一般步驟後post到後端的動作
-                            StringRequest postRequest = new StringRequest(Request.Method.POST, "http://140.115.3.188:3000/sop/v1/steps", new Response.Listener<String>() {
-                                @Override
-                                public void onResponse(String response)
+                                //新增一般步驟後post到後端的動作
+                                StringRequest postRequest = new StringRequest(Request.Method.POST, "http://140.115.3.188:3000/sop/v1/steps", new Response.Listener<String>()
                                 {
-                                    try {
-                                        JSONObject object = new JSONObject(response);
-                                        Log.d("postSuccessful", response);
-                                        e[StepCount - 1].setId(Integer.parseInt(object.getString("id")));
-                                    } catch (JSONException e) {
-                                        e.printStackTrace();
+                                    @Override
+                                    public void onResponse(String response)
+                                    {
+                                        try
+                                        {
+                                            JSONObject object = new JSONObject(response);
+                                            Log.d("postSuccessful", response);
+                                            e[StepCount - 1].setId(Integer.parseInt(object.getString("id")));
+                                        } catch (JSONException e)
+                                        {
+                                            e.printStackTrace();
+                                        }
+
+                                        //插入新步驟後其他item做的調整  (後端)
+                                        for (int i = 0; i < StepCount - 1; i++)
+                                        {
+                                            if (e[i].getExist())
+                                            {
+                                                if (e[i].getLayer() == groupPosition && e[i].getSequence() >= childPosition + 1)
+                                                {
+
+                                                    e[i].setSequence(1);
+                                                    temp= i;
+                                                    HttpClient httpClient = new HttpClient(e, ACCESS_TOKEN, mQueue);
+                                                    httpClient.putComAddChange(temp);
+
+                                                }
+                                            }
+                                        }
+
+
+                                    }
+                                }, new Response.ErrorListener() {
+                                    public void onErrorResponse(VolleyError error)
+                                    {
+                                        Log.e("postErrorHappen", error.getMessage(), error);
                                     }
 
-                                    //插入新步驟後其他item做的調整  (後端)
-                                    for (int i = 0; i < StepCount - 1; i++) {
-                                        if (e[i].getExist()) {
-                                            if (e[i].getLayer() == groupPosition && e[i].getSequence() >= childPosition + 1) {
+                                }) {
+                                    public Map<String, String> getHeaders() throws AuthFailureError
+                                    {
+                                        Map<String, String> map = new HashMap<String, String>();
+                                        map.put("Authorization", "Bearer" + " " + ACCESS_TOKEN);
+                                        return map;
+                                    }
 
-                                                e[i].setSequence(1);
-                                                temp= i;
-                                                HttpClient httpClient = new HttpClient(e, ACCESS_TOKEN, mQueue);
-                                                httpClient.putComAddChange(temp);
 
+                                    public Map<String, String> getParams() throws AuthFailureError
+                                    {
+                                        Map<String, String> map = new HashMap<String, String>();
+                                        map.put("action", mEdtStepName.getText().toString());
+                                        //map.put("items", mEdtStepExam.getText().toString());
+                                        map.put("items", "");
+                                        map.put("prev", Integer.toString(e[StepCount - 1].getLayer()));
+                                        map.put("next", Integer.toString(e[StepCount - 1].getSequence()));
+                                        map.put("Flow_id", Integer.toString(Flow_id));
+                                        //map.put("PersonId", mEdtPeople.getText().toString());
+                                        map.put("PersonId", "0");
+                                        //map.put("UnitId", mSelectUnit.getSelectedItem().toString());
+                                        map.put("UnitId", "A100");
+                                        //map.put("PlaceId", mSelectPlace.getSelectedItem().toString());
+                                        map.put("PlaceId", "1");
+                                        return map;
+                                    }
+                                };
+
+                                mQueue.add(postRequest);
+
+                                StepCount++;
+
+
+                                Map<String, String> child = new HashMap<>();
+                                child.put(ITEM_SUBNAME, mEdtStepName.getText().toString());
+                                childList2D.get(groupPosition - 1).add(childPosition, child);
+
+                                //設定MyExpandListAdapter
+                                initData();
+/*
+                        //設定Adapter
+                        mExpaListAdap = new SimpleExpandableListAdapter(mContext, groupList, android.R.layout.simple_expandable_list_item_2, new String[]{ITEM_NAME}
+                                , new int[]{android.R.id.text1}, childList2D, android.R.layout.simple_expandable_list_item_2, new String[]{ITEM_SUBNAME}, new int[]{android.R.id.text1});
+                        mExpaListView.setAdapter(mExpaListAdap);
+*/
+                                Log.v("childList2DSize", Integer.toString(childList2D.size()));
+
+                                Log.v("groupListSize", Integer.toString(groupList.size()));
+
+                                for (int n = 0; n < groupList.size(); n++) {
+                                    Log.v("childList" + Integer.toString(n) + "Size", Integer.toString(childList2D.get(n).size()));
+                                }
+                            }
+                        });
+
+                        builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+
+                            }
+                        });
+
+                        AlertDialog alert = builder.create();
+                        alert.show();
+
+
+                    break;
+
+
+                case R.id.contextMenuItemDelete:
+                        AlertDialog.Builder builder3 = new AlertDialog.Builder(add_new_one.this);
+
+                        //點擊到父層
+                        if(childPosition == 0)
+                        {
+                            builder3.setMessage("確定要刪除整個平行步驟?");
+                        }
+                        else
+                        {
+                            builder3.setMessage("確定要刪除此步驟?");
+                        }
+                        builder3.setCancelable(false);
+
+                        builder3.setPositiveButton("確定", new DialogInterface.OnClickListener()
+                        {
+                            StringRequest deleteRequest[] = new StringRequest[10];
+
+                            int deletedIndex = 0;      //紀錄要被刪除的步驟在e[]中的index
+                            int changeIndex =0;       //紀錄要被調整的步驟在e[]中的index
+                            int counter=0;
+
+                            public void onClick(DialogInterface dialog, int id)
+                            {
+                                if (childPosition == 0)    //刪除平行步驟
+                                {
+                                    for(int i = 0;i<StepCount ;i++)
+                                    {
+                                        if(e[i].getExist())
+                                        {
+                                            //刪掉父層在groupList中做的調整
+                                            if (e[i].getLayer() == groupPosition && e[i].getSequence() == 0)
+                                            {
+                                                deletedIndex = i;
+                                                groupList.remove(groupPosition - 1);
+                                                Log.v("groupListSize",Integer.toString(groupList.size()));
+
+                                                e[deletedIndex].setExist();
+
+                                                //刪除平行步驟 後端所做的處理
+                                                deleteRequest[counter] = new StringRequest(Request.Method.DELETE, "http://140.115.3.188:3000/sop/v1/steps/" + Integer.toString(e[deletedIndex].getId()), new Response.Listener<String>()
+                                                {
+                                                    @Override
+                                                    public void onResponse(String response)
+                                                    {
+                                                        Log.d("deletePstepSuccessF", response);
+                                                    }
+                                                }, new Response.ErrorListener()
+                                                {
+                                                    public void onErrorResponse(VolleyError error)
+                                                    {
+                                                        Log.e("deletePstepErrorHappen", error.getMessage(), error);
+                                                    }
+                                                })
+                                                {
+                                                    public Map<String, String> getHeaders() throws AuthFailureError
+                                                    {
+                                                        Map<String, String> map = new HashMap<String, String>();
+                                                        map.put("Authorization", "Bearer" + " " + ACCESS_TOKEN);
+                                                        return map;
+                                                    }
+                                                };
+                                                mQueue.add(deleteRequest[counter]);
+                                                counter++;
+
+                                            }
+                                            //刪掉子層在childList中做的調整
+                                            else if (e[i].getLayer() == groupPosition && e[i].getSequence() != 0)
+                                            {
+                                                deletedIndex = i;
+                                                childList2D.get(groupPosition - 1).remove(0);
+                                                e[deletedIndex].setExist();
+
+                                                //刪除平行步驟 後端所做的處理
+                                                deleteRequest[counter] = new StringRequest(Request.Method.DELETE, "http://140.115.3.188:3000/sop/v1/steps/" + Integer.toString(e[deletedIndex].getId()), new Response.Listener<String>()
+                                                {
+                                                    @Override
+                                                    public void onResponse(String response)
+                                                    {
+                                                        Log.d("deletePstepSuccessC", response);
+                                                    }
+                                                }, new Response.ErrorListener()
+                                                {
+                                                    public void onErrorResponse(VolleyError error)
+                                                    {
+                                                        Log.e("deletePstepErrorHappen", error.getMessage(), error);
+                                                    }
+                                                })
+                                                {
+                                                    public Map<String, String> getHeaders() throws AuthFailureError
+                                                    {
+                                                        Map<String, String> map = new HashMap<String, String>();
+                                                        map.put("Authorization", "Bearer" + " " + ACCESS_TOKEN);
+                                                        return map;
+                                                    }
+                                                };
+                                                mQueue.add(deleteRequest[counter]);
+                                                counter++;
+
+                                            }
+
+                                        }
+
+                                    }
+
+                                    //做完後要把空的childList刪除掉
+                                    childList2D.remove(groupPosition - 1);
+
+                                    //刪除掉平行步驟後端所做的調整
+                                    for (int j=0;j<StepCount;j++)
+                                    {
+                                        if(e[j].getExist())
+                                        {
+                                            if(e[j].getLayer() > groupPosition )
+                                            {
+                                                e[j].setLayer(-1);
+                                                changeIndex =j;
+
+                                                Log.v("e[changeIndex].out",Integer.toString(e[changeIndex].getLayer()));
+                                                Log.v("changeIndex.out",Integer.toString(changeIndex));
+
+                                                HttpClient httpClient = new HttpClient(e,ACCESS_TOKEN,mQueue);
+                                                httpClient.putParaDeletChange(changeIndex);
                                             }
                                         }
 
@@ -625,485 +813,265 @@ private void initData()
 
 
                                 }
-                            }, new Response.ErrorListener() {
-                                public void onErrorResponse(VolleyError error) {
-                                    Log.e("postErrorHappen", error.getMessage(), error);
+
+
+                                //刪除一般步驟
+                                if(childPosition!=0)
+                                {
+                                    //刪除被點擊的步驟
+                                    for (int i = 0; i < StepCount; i++)
+                                    {
+                                        if(e[i].getExist())
+                                        {
+                                            if (e[i].getLayer() == groupPosition && e[i].getSequence() == childPosition)
+                                            {
+                                                deletedIndex = i;
+                                                e[deletedIndex].setExist();
+
+                                                //刪除一般步驟 後端所做的處理
+                                                StringRequest stringRequest = new StringRequest(Request.Method.DELETE, "http://140.115.3.188:3000/sop/v1/steps/"+Integer.toString(e[deletedIndex].getId()), new Response.Listener<String>()
+                                                {
+                                                    @Override
+                                                    public void onResponse(String response)
+                                                    {
+                                                        Log.d("deleteCstepSuccessful", response);
+                                                    }
+                                                }, new Response.ErrorListener()
+                                                {
+                                                    public void onErrorResponse(VolleyError error)
+                                                    {
+                                                        Log.e("deleteCstepErrorHappen", error.getMessage(), error);
+                                                    }
+
+                                                })
+                                                {
+                                                    public Map<String, String> getHeaders() throws AuthFailureError
+                                                    {
+                                                        Map<String, String> map = new HashMap<String, String>();
+                                                        map.put("Authorization", "Bearer"+" "+ACCESS_TOKEN);
+                                                        return map;
+                                                    }
+                                                };
+
+                                                mQueue.add(stringRequest);
+                                                break;
+                                            }
+                                        }
+
+                                    }
+
+                                    childList2D.get(groupPosition - 1).remove(e[deletedIndex].getSequence()-1);
+
+
+
+
+                                    //刪除一般步驟後其他步驟做的調整
+                                    for(int j=0;j<StepCount;j++)
+                                    {
+                                        if(e[j].getExist())
+                                        {
+                                            if(e[j].getLayer() == groupPosition && e[j].getSequence()>childPosition)
+                                            {
+                                                changeIndex =j;
+                                                e[changeIndex].setSequence(-1);
+
+                                                HttpClient httpClient = new HttpClient(e,ACCESS_TOKEN,mQueue);
+                                                httpClient.putComDeletChange(changeIndex);
+                                            }
+                                        }
+
+                                    }
+
                                 }
 
-                            }) {
-                                public Map<String, String> getHeaders() throws AuthFailureError {
-                                    Map<String, String> map = new HashMap<String, String>();
-                                    map.put("Authorization", "Bearer" + " " + ACCESS_TOKEN);
-                                    return map;
-                                }
+                                //設定MyExpandListAdapter
+                                initData();
 
-
-                                public Map<String, String> getParams() throws AuthFailureError {
-                                    Map<String, String> map = new HashMap<String, String>();
-                                    map.put("action", mEdtStepName.getText().toString());
-                                    //map.put("items", mEdtStepExam.getText().toString());
-                                    map.put("items", "");
-                                    map.put("prev", Integer.toString(e[StepCount - 1].getLayer()));
-                                    map.put("next", Integer.toString(e[StepCount - 1].getSequence()));
-                                    map.put("Flow_id", Integer.toString(Flow_id));
-                                    //map.put("PersonId", mEdtPeople.getText().toString());
-                                    map.put("PersonId", "0");
-                                    //map.put("UnitId", mSelectUnit.getSelectedItem().toString());
-                                    map.put("UnitId", "A100");
-                                    //map.put("PlaceId", mSelectPlace.getSelectedItem().toString());
-                                    map.put("PlaceId", "1");
-                                    return map;
-                                }
-                            };
-
-                            mQueue.add(postRequest);
-
-                            StepCount++;
-
-
-                            Map<String, String> child = new HashMap<>();
-                            child.put(ITEM_SUBNAME, mEdtStepName.getText().toString());
-                            childList2D.get(groupPosition - 1).add(childPosition, child);
-
-                            //設定MyExpandListAdapter
-                            initData();
 /*
                         //設定Adapter
                         mExpaListAdap = new SimpleExpandableListAdapter(mContext, groupList, android.R.layout.simple_expandable_list_item_2, new String[]{ITEM_NAME}
-                                , new int[]{android.R.id.text1}, childList2D, android.R.layout.simple_expandable_list_item_2, new String[]{ITEM_SUBNAME}, new int[]{android.R.id.text1});
+                                , new int[]{android.R.id.text1, R.drawable.parallel}, childList2D, android.R.layout.simple_expandable_list_item_2, new String[]{ITEM_SUBNAME}, new int[]{android.R.id.text1});
                         mExpaListView.setAdapter(mExpaListAdap);
 */
-                            Log.v("childList2DSize", Integer.toString(childList2D.size()));
 
-                            Log.v("groupListSize", Integer.toString(groupList.size()));
+                                Log.v("childList2DSize", Integer.toString(childList2D.size()));
 
-                            for (int n = 0; n < groupList.size(); n++) {
-                                Log.v("childList" + Integer.toString(n) + "Size", Integer.toString(childList2D.get(n).size()));
+                                Log.v("groupListSize", Integer.toString(groupList.size()));
+
+                                for(int n=0;n<groupList.size();n++)
+                                {
+                                    Log.v("childList"+Integer.toString(n)+"Size",Integer.toString(childList2D.get(n).size()));
+                                }
                             }
-                        }
-                    });
 
-                    builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-
-                        }
-                    });
-
-                    AlertDialog alert = builder.create();
-                    alert.show();
-                }
-
-                break;
+                        });
 
 
-            case R.id.contextMenuItemDelete:
-                if(ACCESS_TOKEN.length()==0)
-                {
-                    Toast.makeText(mContext,"必須先登入才能刪除步驟",Toast.LENGTH_SHORT).show();
-                }
-                else
-                {
-                    AlertDialog.Builder builder3 = new AlertDialog.Builder(add_new_one.this);
-
-                    //點擊到父層
-                    if(childPosition == 0)
-                    {
-                        builder3.setMessage("確定要刪除整個平行步驟?");
-                    }
-                    else
-                    {
-                        builder3.setMessage("確定要刪除此步驟?");
-                    }
-                    builder3.setCancelable(false);
-
-                    builder3.setPositiveButton("確定", new DialogInterface.OnClickListener()
-                    {
-                        StringRequest deleteRequest[] = new StringRequest[10];
-
-                        int deletedIndex = 0;      //紀錄要被刪除的步驟在e[]中的index
-                        int changeIndex =0;       //紀錄要被調整的步驟在e[]中的index
-                        int counter=0;
-
-                        public void onClick(DialogInterface dialog, int id)
+                        builder3.setNegativeButton("取消", new DialogInterface.OnClickListener()
                         {
-                            if (childPosition == 0)    //刪除平行步驟
+                            public void onClick(DialogInterface dialog, int id)
                             {
-                                for(int i = 0;i<StepCount ;i++)
-                                {
-                                    if(e[i].getExist())
-                                    {
-                                        //刪掉父層在groupList中做的調整
-                                        if (e[i].getLayer() == groupPosition && e[i].getSequence() == 0)
-                                        {
-                                            deletedIndex = i;
-                                            groupList.remove(groupPosition - 1);
-                                            Log.v("groupListSize",Integer.toString(groupList.size()));
-
-                                            e[deletedIndex].setExist();
-
-                                            //刪除平行步驟 後端所做的處理
-                                            deleteRequest[counter] = new StringRequest(Request.Method.DELETE, "http://140.115.3.188:3000/sop/v1/steps/" + Integer.toString(e[deletedIndex].getId()), new Response.Listener<String>()
-                                            {
-                                                @Override
-                                                public void onResponse(String response)
-                                                {
-                                                    Log.d("deletePstepSuccessF", response);
-                                                }
-                                            }, new Response.ErrorListener()
-                                            {
-                                                public void onErrorResponse(VolleyError error)
-                                                {
-                                                    Log.e("deletePstepErrorHappen", error.getMessage(), error);
-                                                }
-                                            })
-                                            {
-                                                public Map<String, String> getHeaders() throws AuthFailureError
-                                                {
-                                                    Map<String, String> map = new HashMap<String, String>();
-                                                    map.put("Authorization", "Bearer" + " " + ACCESS_TOKEN);
-                                                    return map;
-                                                }
-                                            };
-                                            mQueue.add(deleteRequest[counter]);
-                                            counter++;
-
-                                        }
-                                        //刪掉子層在childList中做的調整
-                                        else if (e[i].getLayer() == groupPosition && e[i].getSequence() != 0)
-                                        {
-                                            deletedIndex = i;
-                                            childList2D.get(groupPosition - 1).remove(0);
-                                            e[deletedIndex].setExist();
-
-                                            //刪除平行步驟 後端所做的處理
-                                            deleteRequest[counter] = new StringRequest(Request.Method.DELETE, "http://140.115.3.188:3000/sop/v1/steps/" + Integer.toString(e[deletedIndex].getId()), new Response.Listener<String>()
-                                            {
-                                                @Override
-                                                public void onResponse(String response)
-                                                {
-                                                    Log.d("deletePstepSuccessC", response);
-                                                }
-                                            }, new Response.ErrorListener()
-                                            {
-                                                public void onErrorResponse(VolleyError error)
-                                                {
-                                                    Log.e("deletePstepErrorHappen", error.getMessage(), error);
-                                                }
-                                            })
-                                            {
-                                                public Map<String, String> getHeaders() throws AuthFailureError
-                                                {
-                                                    Map<String, String> map = new HashMap<String, String>();
-                                                    map.put("Authorization", "Bearer" + " " + ACCESS_TOKEN);
-                                                    return map;
-                                                }
-                                            };
-                                            mQueue.add(deleteRequest[counter]);
-                                            counter++;
-
-                                        }
-
-                                    }
-
-                                }
-
-                                //做完後要把空的childList刪除掉
-                                childList2D.remove(groupPosition - 1);
-
-                                //刪除掉平行步驟後端所做的調整
-                                for (int j=0;j<StepCount;j++)
-                                {
-                                    if(e[j].getExist())
-                                    {
-                                        if(e[j].getLayer() > groupPosition )
-                                        {
-                                            e[j].setLayer(-1);
-                                            changeIndex =j;
-
-                                            Log.v("e[changeIndex].out",Integer.toString(e[changeIndex].getLayer()));
-                                            Log.v("changeIndex.out",Integer.toString(changeIndex));
-
-                                            HttpClient httpClient = new HttpClient(e,ACCESS_TOKEN,mQueue);
-                                            httpClient.putParaDeletChange(changeIndex);
-                                        }
-                                    }
-
-                                }
-
-
                             }
 
+                        });
 
-                            //刪除一般步驟
-                            if(childPosition!=0)
-                            {
-                                //刪除被點擊的步驟
+                        builder3.show();
+
+
+                    break;
+
+                case R.id.contextMenuItemEdit:
+                        AlertDialog.Builder builder4 = new AlertDialog.Builder(add_new_one.this);
+                        builder4.setTitle("編輯步驟名稱");
+                        builder4.setView(R.layout.edit_step_dialog);
+                        builder4.setCancelable(false);
+
+                        builder4.setPositiveButton("確定", new DialogInterface.OnClickListener() {
+                            int editIndex;
+                            EditText editStepName;
+
+                            public void onClick(DialogInterface dialog, int id) {
+
+                                //Log.v("successful edit step", "新的步驟名稱為:" + editStepName.getText().toString());
+                                editStepName = (EditText) ((AlertDialog) dialog).findViewById(R.id.editStepName);
+                                if (childPosition == 0)
+                                {
+                                    Map<String, Object> newEditItem = new HashMap<String, Object>();
+                                    newEditItem.put(ITEM_NAME, editStepName.getText().toString());
+                                    groupList.set(groupPosition - 1, newEditItem);
+                                }
+                                else
+                                {
+                                    Map<String, String> newEditSubItem = new HashMap<String, String>();
+                                    newEditSubItem.put(ITEM_SUBNAME, editStepName.getText().toString());
+                                    childList2D.get(groupPosition - 1).set(childPosition - 1, newEditSubItem);
+                                }
+
+                                //編輯步驟名稱後端所做的處理(put)
                                 for (int i = 0; i < StepCount; i++)
                                 {
-                                    if(e[i].getExist())
+                                    if (e[i].getLayer() == groupPosition && e[i].getSequence() == childPosition)
                                     {
-                                        if (e[i].getLayer() == groupPosition && e[i].getSequence() == childPosition)
-                                        {
-                                            deletedIndex = i;
-                                            e[deletedIndex].setExist();
+                                        editIndex = i;
+                                        //做完調整後上傳的動作 (put)
+                                        StringRequest putRequest = new StringRequest(Request.Method.PUT, "http://140.115.3.188:3000/sop/v1/steps/" + Integer.toString(e[editIndex].getId()), new Response.Listener<String>() {
 
-                                            //刪除一般步驟 後端所做的處理
-                                            StringRequest stringRequest = new StringRequest(Request.Method.DELETE, "http://140.115.3.188:3000/sop/v1/steps/"+Integer.toString(e[deletedIndex].getId()), new Response.Listener<String>()
-                                            {
-                                                @Override
-                                                public void onResponse(String response)
-                                                {
-                                                    Log.d("deleteCstepSuccessful", response);
-                                                }
-                                            }, new Response.ErrorListener()
-                                            {
-                                                public void onErrorResponse(VolleyError error)
-                                                {
-                                                    Log.e("deleteCstepErrorHappen", error.getMessage(), error);
-                                                }
+                                            @Override
+                                            public void onResponse(String response) {
+                                                Log.d("Successful", response);
+                                            }
+                                        }, new Response.ErrorListener() {
+                                            public void onErrorResponse(VolleyError error) {
+                                                Log.e("ErrorHappen", error.getMessage(), error);
+                                            }
 
-                                            })
-                                            {
-                                                public Map<String, String> getHeaders() throws AuthFailureError
-                                                {
-                                                    Map<String, String> map = new HashMap<String, String>();
-                                                    map.put("Authorization", "Bearer"+" "+ACCESS_TOKEN);
-                                                    return map;
-                                                }
-                                            };
+                                        }) {
+                                            public Map<String, String> getHeaders() throws AuthFailureError {
+                                                Map<String, String> map = new HashMap<String, String>();
+                                                map.put("Authorization", "Bearer" + " " + ACCESS_TOKEN);
+                                                return map;
+                                            }
 
-                                            mQueue.add(stringRequest);
-                                            break;
-                                        }
+
+                                            public Map<String, String> getParams() throws AuthFailureError {
+                                                Map<String, String> map = new HashMap<String, String>();
+                                                map.put("action", editStepName.getText().toString());
+
+                                                return map;
+                                            }
+                                        };
+                                        mQueue.add(putRequest);
+                                        break;
                                     }
 
-                                }
-
-                                childList2D.get(groupPosition - 1).remove(e[deletedIndex].getSequence()-1);
-
-
-
-
-                                //刪除一般步驟後其他步驟做的調整
-                                for(int j=0;j<StepCount;j++)
-                                {
-                                    if(e[j].getExist())
-                                    {
-                                        if(e[j].getLayer() == groupPosition && e[j].getSequence()>childPosition)
-                                        {
-                                            changeIndex =j;
-                                            e[changeIndex].setSequence(-1);
-
-                                            HttpClient httpClient = new HttpClient(e,ACCESS_TOKEN,mQueue);
-                                            httpClient.putComDeletChange(changeIndex);
-                                        }
-                                    }
-
-                                }
-
-                            }
-
-                            //設定MyExpandListAdapter
-                            initData();
-
-/*
-                        //設定Adapter
-                        mExpaListAdap = new SimpleExpandableListAdapter(mContext, groupList, android.R.layout.simple_expandable_list_item_2, new String[]{ITEM_NAME}
-                                , new int[]{android.R.id.text1, R.drawable.parallel}, childList2D, android.R.layout.simple_expandable_list_item_2, new String[]{ITEM_SUBNAME}, new int[]{android.R.id.text1});
-                        mExpaListView.setAdapter(mExpaListAdap);
-*/
-
-                            Log.v("childList2DSize", Integer.toString(childList2D.size()));
-
-                            Log.v("groupListSize", Integer.toString(groupList.size()));
-
-                            for(int n=0;n<groupList.size();n++)
-                            {
-                                Log.v("childList"+Integer.toString(n)+"Size",Integer.toString(childList2D.get(n).size()));
-                            }
-                        }
-
-                    });
-
-
-                    builder3.setNegativeButton("取消", new DialogInterface.OnClickListener()
-                    {
-                        public void onClick(DialogInterface dialog, int id)
-                        {
-                        }
-
-                    });
-
-                    builder3.show();
-                }
-
-                break;
-
-            case R.id.contextMenuItemEdit:
-                if(ACCESS_TOKEN.length()==0)
-                {
-                    Toast.makeText(mContext,"必須先登入才能編輯步驟名稱",Toast.LENGTH_SHORT).show();
-                }
-                else
-                {
-                    AlertDialog.Builder builder4 = new AlertDialog.Builder(add_new_one.this);
-                    builder4.setTitle("編輯步驟名稱");
-                    builder4.setView(R.layout.edit_step_dialog);
-                    builder4.setCancelable(false);
-
-                    builder4.setPositiveButton("確定", new DialogInterface.OnClickListener() {
-                        int editIndex;
-                        EditText editStepName;
-
-                        public void onClick(DialogInterface dialog, int id) {
-
-                            //Log.v("successful edit step", "新的步驟名稱為:" + editStepName.getText().toString());
-                            editStepName = (EditText) ((AlertDialog) dialog).findViewById(R.id.editStepName);
-                            if (childPosition == 0)
-                            {
-                                Map<String, Object> newEditItem = new HashMap<String, Object>();
-                                newEditItem.put(ITEM_NAME, editStepName.getText().toString());
-                                groupList.set(groupPosition - 1, newEditItem);
-                            }
-                            else
-                            {
-                                Map<String, String> newEditSubItem = new HashMap<String, String>();
-                                newEditSubItem.put(ITEM_SUBNAME, editStepName.getText().toString());
-                                childList2D.get(groupPosition - 1).set(childPosition - 1, newEditSubItem);
-                            }
-
-                            //編輯步驟名稱後端所做的處理(put)
-                            for (int i = 0; i < StepCount; i++)
-                            {
-                                if (e[i].getLayer() == groupPosition && e[i].getSequence() == childPosition)
-                                {
-                                    editIndex = i;
-                                    //做完調整後上傳的動作 (put)
-                                    StringRequest putRequest = new StringRequest(Request.Method.PUT, "http://140.115.3.188:3000/sop/v1/steps/" + Integer.toString(e[editIndex].getId()), new Response.Listener<String>() {
-
-                                        @Override
-                                        public void onResponse(String response) {
-                                            Log.d("Successful", response);
-                                        }
-                                    }, new Response.ErrorListener() {
-                                        public void onErrorResponse(VolleyError error) {
-                                            Log.e("ErrorHappen", error.getMessage(), error);
-                                        }
-
-                                    }) {
-                                        public Map<String, String> getHeaders() throws AuthFailureError {
-                                            Map<String, String> map = new HashMap<String, String>();
-                                            map.put("Authorization", "Bearer" + " " + ACCESS_TOKEN);
-                                            return map;
-                                        }
-
-
-                                        public Map<String, String> getParams() throws AuthFailureError {
-                                            Map<String, String> map = new HashMap<String, String>();
-                                            map.put("action", editStepName.getText().toString());
-
-                                            return map;
-                                        }
-                                    };
-                                    mQueue.add(putRequest);
-                                    break;
-                                }
-
-                            }
-
-                            //設定MyExpandListAdapter
-                            initData();
-/*
-                        //設定Adapter
-                        mExpaListAdap = new SimpleExpandableListAdapter(mContext, groupList, android.R.layout.simple_expandable_list_item_2, new String[]{ITEM_NAME}
-                                , new int[]{android.R.id.text1, R.drawable.parallel}, childList2D, android.R.layout.simple_expandable_list_item_2, new String[]{ITEM_SUBNAME}, new int[]{android.R.id.text1});
-                        mExpaListView.setAdapter(mExpaListAdap);
-*/
-
-                        }
-
-                    });
-
-
-                    builder4.setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-
-                        }
-
-                    });
-                    AlertDialog alert4 = builder4.create();
-                    alert4.show();
-
-                }
-
-                break;
-
-
-            case R.id.contextMenuItemMoveUp:
-                if(ACCESS_TOKEN.length()==0)
-                {
-                    Toast.makeText(mContext,"必須先登入才能上移步驟順序",Toast.LENGTH_SHORT).show();
-                }
-                else
-                {
-                    final int adjustPosition = groupPosition-1;
-                    final Step[] stepToBeChange = new Step[StepCount];
-
-                    AlertDialog.Builder builder5 = new AlertDialog.Builder(add_new_one.this);
-                    builder5.setMessage("確定要將步驟上移?");
-                    builder5.setCancelable(false);
-                    builder5.setPositiveButton("確定", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id)
-                        {
-                            //表示不能在上移了
-                            if(groupPosition == 1)
-                            {
-                                Toast.makeText(add_new_one.this,"此步驟為最上層,無法上移",Toast.LENGTH_SHORT).show();
-                            }
-                            else
-                            {
-                                int counter=0;
-                                int layer;
-                                //做groupList的調整
-                                Map<String,Object> selectedGroupListItem = groupList.get(groupPosition-1);
-                                Map<String,Object> adjustGroupListItem = groupList.get(adjustPosition-1);
-                                groupList.set(adjustPosition-1,selectedGroupListItem);
-                                groupList.set(groupPosition-1,adjustGroupListItem);
-
-                                //做child2Dlist的調整
-                                List<Map<String,String>> selectedChildList = childList2D.get(groupPosition-1);
-                                List<Map<String,String>> adjustChildList = childList2D.get(adjustPosition - 1);
-                                childList2D.set(groupPosition-1,adjustChildList);
-                                childList2D.set(adjustPosition - 1, selectedChildList);
-
-                                //將調整後的順序put 到後端
-                                for(int i=0;i<StepCount;i++)
-                                {
-                                    Log.v("stepTEST",e[i].getContent());
-                                    if(e[i].getLayer() == groupPosition)
-                                    {
-                                        stepToBeChange[counter] = e[i];
-                                        layer =groupPosition-1;
-                                        HttpClient httpClient =new HttpClient(stepToBeChange,ACCESS_TOKEN,mQueue);
-                                        httpClient.uploadMovedStep(stepToBeChange[counter],groupPosition,layer);
-                                        e[i].setLayer(-1);
-                                        Log.v("e["+i+"]:layer",Integer.toString(e[i].getLayer()));
-                                        counter++;
-                                    }
-                                    else if(e[i].getLayer() == groupPosition-1)
-                                    {
-                                        stepToBeChange[counter] = e[i];
-                                        layer =groupPosition;
-                                        HttpClient httpClient =new HttpClient(stepToBeChange,ACCESS_TOKEN,mQueue);
-                                        httpClient.uploadMovedStep(stepToBeChange[counter],groupPosition,layer);
-                                        e[i].setLayer(1);
-                                        Log.v("e[" + i + "]:layer", Integer.toString(e[i].getLayer()));
-                                        counter++;
-                                    }
                                 }
 
                                 //設定MyExpandListAdapter
                                 initData();
+/*
+                        //設定Adapter
+                        mExpaListAdap = new SimpleExpandableListAdapter(mContext, groupList, android.R.layout.simple_expandable_list_item_2, new String[]{ITEM_NAME}
+                                , new int[]{android.R.id.text1, R.drawable.parallel}, childList2D, android.R.layout.simple_expandable_list_item_2, new String[]{ITEM_SUBNAME}, new int[]{android.R.id.text1});
+                        mExpaListView.setAdapter(mExpaListAdap);
+*/
+
+                            }
+
+                        });
+
+
+                        builder4.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+
+                            }
+
+                        });
+                        AlertDialog alert4 = builder4.create();
+                        alert4.show();
+
+                    break;
+
+
+                case R.id.contextMenuItemMoveUp:
+
+                        final int adjustPosition = groupPosition-1;
+                        final Step[] stepToBeChange = new Step[StepCount];
+
+                        AlertDialog.Builder builder5 = new AlertDialog.Builder(add_new_one.this);
+                        builder5.setMessage("確定要將步驟上移?");
+                        builder5.setCancelable(false);
+                        builder5.setPositiveButton("確定", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id)
+                            {
+                                //表示不能在上移了
+                                if(groupPosition == 1)
+                                {
+                                    Toast.makeText(add_new_one.this,"此步驟為最上層,無法上移",Toast.LENGTH_SHORT).show();
+                                }
+                                else
+                                {
+                                    int counter=0;
+                                    int layer;
+                                    //做groupList的調整
+                                    Map<String,Object> selectedGroupListItem = groupList.get(groupPosition-1);
+                                    Map<String,Object> adjustGroupListItem = groupList.get(adjustPosition-1);
+                                    groupList.set(adjustPosition-1,selectedGroupListItem);
+                                    groupList.set(groupPosition-1,adjustGroupListItem);
+
+                                    //做child2Dlist的調整
+                                    List<Map<String,String>> selectedChildList = childList2D.get(groupPosition-1);
+                                    List<Map<String,String>> adjustChildList = childList2D.get(adjustPosition - 1);
+                                    childList2D.set(groupPosition-1,adjustChildList);
+                                    childList2D.set(adjustPosition - 1, selectedChildList);
+
+                                    //將調整後的順序put 到後端
+                                    for(int i=0;i<StepCount;i++)
+                                    {
+                                        Log.v("stepTEST",e[i].getContent());
+                                        if(e[i].getLayer() == groupPosition)
+                                        {
+                                            stepToBeChange[counter] = e[i];
+                                            layer =groupPosition-1;
+                                            HttpClient httpClient =new HttpClient(stepToBeChange,ACCESS_TOKEN,mQueue);
+                                            httpClient.uploadMovedStep(stepToBeChange[counter],groupPosition,layer);
+                                            e[i].setLayer(-1);
+                                            Log.v("e["+i+"]:layer",Integer.toString(e[i].getLayer()));
+                                            counter++;
+                                        }
+                                        else if(e[i].getLayer() == groupPosition-1)
+                                        {
+                                            stepToBeChange[counter] = e[i];
+                                            layer =groupPosition;
+                                            HttpClient httpClient =new HttpClient(stepToBeChange,ACCESS_TOKEN,mQueue);
+                                            httpClient.uploadMovedStep(stepToBeChange[counter],groupPosition,layer);
+                                            e[i].setLayer(1);
+                                            Log.v("e[" + i + "]:layer", Integer.toString(e[i].getLayer()));
+                                            counter++;
+                                        }
+                                    }
+
+                                    //設定MyExpandListAdapter
+                                    initData();
 
 /*
                             //設定Adapter
@@ -1111,98 +1079,93 @@ private void initData()
                                     , new int[]{android.R.id.text1, R.drawable.parallel}, childList2D, android.R.layout.simple_expandable_list_item_2, new String[]{ITEM_SUBNAME}, new int[]{android.R.id.text1});
                             mExpaListView.setAdapter(mExpaListAdap);
 */
-                            }
-
-
-                        }
-
-                    });
-
-
-                    builder5.setNegativeButton("取消", new DialogInterface.OnClickListener()
-                    {
-                        public void onClick(DialogInterface dialog, int id)
-                        {
-
-                        }
-
-                    });
-
-
-                    AlertDialog alert5 = builder5.create();
-                    alert5.show();
-                }
-
-
-                break;
-
-
-            case R.id.contextMenuItemMoveDown:
-                if(ACCESS_TOKEN.length()==0)
-                {
-                    Toast.makeText(mContext,"必須先登入才能下移步驟順序",Toast.LENGTH_SHORT).show();
-                }
-                else
-                {
-                    final int adjustPosition2 = groupPosition + 1;
-                    final Step[] stepToBeChange2 = new Step[StepCount];
-
-                    AlertDialog.Builder builder6 = new AlertDialog.Builder(add_new_one.this);
-                    builder6.setMessage("確定要將步驟下移?");
-                    builder6.setCancelable(false);
-                    builder6.setPositiveButton("確定", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id)
-                        {
-                            //表示不能再下移
-                            if(groupPosition == groupList.size())
-                            {
-                                Toast.makeText(add_new_one.this,"此步驟為最下層,無法下移",Toast.LENGTH_SHORT).show();
-                            }
-                            else
-                            {
-                                int counter=0;
-                                int layer;
-
-                                //做groupList的調整
-                                Map<String,Object> selectedGroupListItem = groupList.get(groupPosition-1);
-                                Map<String,Object> adjustGroupListItem = groupList.get(adjustPosition2-1);
-                                groupList.set(adjustPosition2-1,selectedGroupListItem);
-                                groupList.set(groupPosition-1,adjustGroupListItem);
-
-                                //做child2Dlist的調整
-                                List<Map<String,String>> selectedChildList = childList2D.get(groupPosition-1);
-                                List<Map<String,String>> adjustChildList = childList2D.get(adjustPosition2 - 1);
-                                childList2D.set(groupPosition-1,adjustChildList);
-                                childList2D.set(adjustPosition2 - 1, selectedChildList);
-
-                                //將調整後的順序put 到後端
-                                for(int i=0;i<StepCount;i++)
-                                {
-                                    Log.v("stepTEST",e[i].getContent());
-                                    if(e[i].getLayer() == groupPosition)
-                                    {
-                                        stepToBeChange2[counter] = e[i];
-                                        layer =groupPosition+1;
-                                        HttpClient httpClient =new HttpClient(stepToBeChange2,ACCESS_TOKEN,mQueue);
-                                        httpClient.uploadMovedStep(stepToBeChange2[counter],groupPosition,layer);
-                                        e[i].setLayer(1);
-                                        Log.v("e["+i+"]:layer",Integer.toString(e[i].getLayer()));
-                                        counter++;
-                                    }
-                                    else if(e[i].getLayer() == groupPosition+1)
-                                    {
-                                        stepToBeChange2[counter] = e[i];
-                                        layer =groupPosition;
-                                        HttpClient httpClient =new HttpClient(stepToBeChange2,ACCESS_TOKEN,mQueue);
-                                        httpClient.uploadMovedStep(stepToBeChange2[counter],groupPosition,layer);
-                                        e[i].setLayer(-1);
-                                        Log.v("e[" + i + "]:layer", Integer.toString(e[i].getLayer()));
-                                        counter++;
-                                    }
                                 }
 
-                                //設定MyExpandListAdapter
-                                initData();
+
+                            }
+
+                        });
+
+
+                        builder5.setNegativeButton("取消", new DialogInterface.OnClickListener()
+                        {
+                            public void onClick(DialogInterface dialog, int id)
+                            {
+
+                            }
+
+                        });
+
+
+                        AlertDialog alert5 = builder5.create();
+                        alert5.show();
+
+
+
+                    break;
+
+
+                case R.id.contextMenuItemMoveDown:
+
+                        final int adjustPosition2 = groupPosition + 1;
+                        final Step[] stepToBeChange2 = new Step[StepCount];
+
+                        AlertDialog.Builder builder6 = new AlertDialog.Builder(add_new_one.this);
+                        builder6.setMessage("確定要將步驟下移?");
+                        builder6.setCancelable(false);
+                        builder6.setPositiveButton("確定", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id)
+                            {
+                                //表示不能再下移
+                                if(groupPosition == groupList.size())
+                                {
+                                    Toast.makeText(add_new_one.this,"此步驟為最下層,無法下移",Toast.LENGTH_SHORT).show();
+                                }
+                                else
+                                {
+                                    int counter=0;
+                                    int layer;
+
+                                    //做groupList的調整
+                                    Map<String,Object> selectedGroupListItem = groupList.get(groupPosition-1);
+                                    Map<String,Object> adjustGroupListItem = groupList.get(adjustPosition2-1);
+                                    groupList.set(adjustPosition2-1,selectedGroupListItem);
+                                    groupList.set(groupPosition-1,adjustGroupListItem);
+
+                                    //做child2Dlist的調整
+                                    List<Map<String,String>> selectedChildList = childList2D.get(groupPosition-1);
+                                    List<Map<String,String>> adjustChildList = childList2D.get(adjustPosition2 - 1);
+                                    childList2D.set(groupPosition-1,adjustChildList);
+                                    childList2D.set(adjustPosition2 - 1, selectedChildList);
+
+                                    //將調整後的順序put 到後端
+                                    for(int i=0;i<StepCount;i++)
+                                    {
+                                        Log.v("stepTEST",e[i].getContent());
+                                        if(e[i].getLayer() == groupPosition)
+                                        {
+                                            stepToBeChange2[counter] = e[i];
+                                            layer =groupPosition+1;
+                                            HttpClient httpClient =new HttpClient(stepToBeChange2,ACCESS_TOKEN,mQueue);
+                                            httpClient.uploadMovedStep(stepToBeChange2[counter],groupPosition,layer);
+                                            e[i].setLayer(1);
+                                            Log.v("e["+i+"]:layer",Integer.toString(e[i].getLayer()));
+                                            counter++;
+                                        }
+                                        else if(e[i].getLayer() == groupPosition+1)
+                                        {
+                                            stepToBeChange2[counter] = e[i];
+                                            layer =groupPosition;
+                                            HttpClient httpClient =new HttpClient(stepToBeChange2,ACCESS_TOKEN,mQueue);
+                                            httpClient.uploadMovedStep(stepToBeChange2[counter],groupPosition,layer);
+                                            e[i].setLayer(-1);
+                                            Log.v("e[" + i + "]:layer", Integer.toString(e[i].getLayer()));
+                                            counter++;
+                                        }
+                                    }
+
+                                    //設定MyExpandListAdapter
+                                    initData();
 
 
 
@@ -1212,31 +1175,31 @@ private void initData()
                                     , new int[]{android.R.id.text1, R.drawable.parallel}, childList2D, android.R.layout.simple_expandable_list_item_2, new String[]{ITEM_SUBNAME}, new int[]{android.R.id.text1});
                             mExpaListView.setAdapter(mExpaListAdap);
 */
+                                }
+
+
+                            }
+                        });
+
+                        builder6.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id)
+                            {
+
                             }
 
-
-                        }
-                    });
-
-                    builder6.setNegativeButton("取消", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id)
-                        {
-
-                        }
-
-                    });
+                        });
 
 
-                    AlertDialog alert6 = builder6.create();
-                    alert6.show();
+                        AlertDialog alert6 = builder6.create();
+                        alert6.show();
 
-                }
-                break;
-
+                    break;
 
         }
-        return super.onContextItemSelected(item);
 
+
+
+        return super.onContextItemSelected(item);
     }
 
 
@@ -1262,23 +1225,24 @@ private void initData()
     {
         public boolean onItemLongClick(AdapterView<?> parent, View childView, int flatPos, long id)
         {
-            long packedPosition = ((ExpandableListView) parent).getExpandableListPosition(flatPos);
-            int groupposition = ExpandableListView.getPackedPositionGroup(packedPosition)+1;
-            int childposition = ExpandableListView.getPackedPositionChild(packedPosition)+1;
-            groupPosition = groupposition;
-            childPosition = childposition;
+                long packedPosition = ((ExpandableListView) parent).getExpandableListPosition(flatPos);
+                int groupposition = ExpandableListView.getPackedPositionGroup(packedPosition)+1;
+                int childposition = ExpandableListView.getPackedPositionChild(packedPosition)+1;
+                groupPosition = groupposition;
+                childPosition = childposition;
 
-            if (childPosition ==0) //選到父層
-            {
+                if (childPosition ==0) //選到父層
+                {
 
-            }
-            else                    //選到子層
-            {
+                }
+                else                    //選到子層
+                {
 
-            }
-            //Log.v("測試", packedPosition+" ");
-            Log.v("測試", " 長按的组群位置：" + groupPosition);
-            Log.v("測試", "長按的子項位置:" + childPosition);
+                }
+                //Log.v("測試", packedPosition+" ");
+                Log.v("測試", " 長按的组群位置：" + groupPosition);
+                Log.v("測試", "長按的子項位置:" + childPosition);
+
             return false;
         }
 

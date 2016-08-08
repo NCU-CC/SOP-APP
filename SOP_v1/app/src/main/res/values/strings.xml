@@ -20,6 +20,6 @@
     <string name="oauth_delete_step_certificate">必須先登入才能刪除專案</string>
     <string name="oauth_edit_step_certificate">必須先登入才能編輯專案</string>
     <string name="oauth_edit_step_copy">必須先登入才能複製專案</string>
-    <string name="title_activity_add_new_one">add_new_one</string>
-    <string name="title_activity_detail_step">DetailStepActivity</string>
+    <string name="title_activity_add_new_one">步驟選單</string>
+    <string name="title_activity_detail_step">詳細步驟內容</string>
 </resources>

@@ -5,6 +5,11 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/line2">
 
-    <TextView android:gravity="center_vertical" android:id="@+id/grouplabel" android:layout_marginLeft="48dp" android:layout_height="wrap_content" android:layout_width="match_parent" android:textSize="24sp" android:textStyle="bold"/>
+    <TextView  android:gravity="center_vertical"
+                android:id="@+id/grouplabel"
+                android:layout_marginLeft="48dp"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:textSize="24sp" />
 
 </LinearLayout>

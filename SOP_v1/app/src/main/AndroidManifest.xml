@@ -6,10 +6,11 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/sop_icon"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme.NoActionBar">
+
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
@@ -20,26 +21,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".networkfee"
-            android:label="@string/title_activity_networkfee"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".dormsign"
-            android:label="@string/title_activity_dormsign"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".ballot"
-            android:label="@string/title_activity_ballot"
-            android:theme="@style/AppTheme.NoActionBar" />
+
         <activity
             android:name=".add_new_one"
-            android:label="@string/title_activity_add_new_one"
+            android:label=""
             android:theme="@style/AppTheme.NoActionBar" />
+
         <activity
             android:name=".DetailStepActivity"
-            android:label="@string/title_activity_detail_step"
+            android:label=""
             android:theme="@style/AppTheme.NoActionBar"></activity>
+
     </application>
 
 </manifest>

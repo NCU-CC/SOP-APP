@@ -18,6 +18,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static cc.ncu.edu.tw.sop_v1.R.drawable.border_shape;
+
 public class MyExpandListAdapter extends BaseExpandableListAdapter
 {
     Context ctxt = null;
@@ -29,7 +31,6 @@ public class MyExpandListAdapter extends BaseExpandableListAdapter
         super();
         ctxt = c;
         groups = groupitems;
-
     }
 
     @Override
@@ -54,11 +55,6 @@ public class MyExpandListAdapter extends BaseExpandableListAdapter
         return childPosition;
     }
 
-
-
-
-
-
     @Override
     public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent)
     {
@@ -72,19 +68,14 @@ public class MyExpandListAdapter extends BaseExpandableListAdapter
             row = inflater.inflate(R.layout.child_row, parent, false);
         }
 
-
         TextView tv = (TextView) row.findViewById(R.id.childlabel);
         String child = getChild(groupPosition, childPosition);
-
-
 
         if (child != null)
         {
             tv.setText(child);
             Log.v("ChildContent", child);
         }
-
-
 
         //決定顏色
         if(groupPosition % 3==0)
@@ -100,17 +91,8 @@ public class MyExpandListAdapter extends BaseExpandableListAdapter
             row.setBackgroundColor(Color.parseColor("#D1E9E9"));
         }
 
-
-
-
         return row;
     }
-
-
-
-
-
-
 
     @Override
     public int getChildrenCount(int groupPosition)
@@ -169,6 +151,7 @@ public class MyExpandListAdapter extends BaseExpandableListAdapter
         //決定顏色
         if(groupPosition % 3==0)
         {
+            //row.setBackgroundResource(R.drawable.border_shape);
             row.setBackgroundColor(Color.parseColor("#4F9D9D"));
         }
         else if(groupPosition % 3==1)
@@ -188,19 +171,15 @@ public class MyExpandListAdapter extends BaseExpandableListAdapter
         return false;
     }
 
-
     @Override
     public boolean isChildSelectable(int groupPosition, int childPosition)
     {
-
         return true;
     }
 
     public void addChild(int group, String[] childs)
     {
-
         data.add(group, childs);
         notifyDataSetChanged();
     }
-
 }

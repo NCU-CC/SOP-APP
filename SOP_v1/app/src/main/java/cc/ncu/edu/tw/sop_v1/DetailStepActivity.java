@@ -32,6 +32,7 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,8 +45,8 @@ public class DetailStepActivity extends AppCompatActivity
     int stepID;
 
     //DetailStepActivity介面元件對應的宣告
-    EditText stepExamine;
-    AutoCompleteTextView person;
+    private EditText stepExamine;
+    private AutoCompleteTextView person;
     private Spinner unitsSpinner;
     private Spinner placesSpinner;
 
@@ -92,6 +93,7 @@ public class DetailStepActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setOnMenuItemClickListener(onMenuItemClick);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         //DetailStepActivity見面元件設定 ID
         unitsSpinner = (Spinner)findViewById(R.id.units_spinner);
@@ -117,6 +119,7 @@ public class DetailStepActivity extends AppCompatActivity
         //取出從add_new_one.java中Intent所附帶的Step資料
         stepID = bundle.getInt("StepID");
         ACCESS_TOKEN =bundle.getString("ACCESS_TOKEN");
+        setTitle(bundle.getString("selectProjectAndStep"));
 
         //到後端去get 資料
         StringRequest apiRequest = new StringRequest("http://140.115.3.188:3000/sop/v1/steps/"+Integer.toString(stepID), new Response.Listener<String>()
@@ -160,7 +163,8 @@ public class DetailStepActivity extends AppCompatActivity
 
                     //載入人員資料
                     httpClientPerson.switchPersonIdToName(Integer.parseInt(object.getString("PersonId")), new HttpClient.GetPeopleResponseListener() {
-                        public void setPeopleIndex(String name) {
+                        public void setPeopleIndex(String name)
+                        {
                             personName = name;
                             Log.v("people_id", Integer.toString(people_id));
                             //設定人員欄位
@@ -350,6 +354,16 @@ public class DetailStepActivity extends AppCompatActivity
 
     };
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId())
+        {
+            case android.R.id.home:
+                onBackPressed();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
     private Toolbar.OnMenuItemClickListener onMenuItemClick = new Toolbar.OnMenuItemClickListener()
     {
@@ -374,6 +388,7 @@ public class DetailStepActivity extends AppCompatActivity
 
 
                     break;
+
 
                 case R.id.action_upload:
                     if(ACCESS_TOKEN.length()==0)
@@ -449,10 +464,11 @@ public class DetailStepActivity extends AppCompatActivity
                     break;
 
 
-
+/*
                 case R.id.action_settings:
-                    ;
+
                     break;
+                */
             }
 
 
@@ -463,7 +479,16 @@ public class DetailStepActivity extends AppCompatActivity
 
     public boolean onCreateOptionsMenu(Menu menu)
     {
-        getMenuInflater().inflate(R.menu.menu_ballot, menu);
+        if(ACCESS_TOKEN.length()==0)
+        {
+            //未登入所以沒有
+        }
+        else
+        {
+            getMenuInflater().inflate(R.menu.menu_ballot, menu);
+        }
+
+
         return true;
     }
 
