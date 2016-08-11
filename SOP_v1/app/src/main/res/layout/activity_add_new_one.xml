@@ -20,9 +20,7 @@
             app:popupTheme="@style/AppTheme.NoActionBar.PopupOverlay" />
 
     </android.support.design.widget.AppBarLayout>
-<!--
-    <expandablelistview android:id="@+id/elistview" android:layout_height="wrap_content" android:layout_width="match_parent"/>
--->
+
     <include layout="@layout/content_add_new_one" />
 
     <android.support.design.widget.FloatingActionButton

@@ -151,7 +151,6 @@ public class MyAdapter extends BaseAdapter implements Filterable
                 myView.delete.setOnClickListener(new ButtonDelete_Click(position));
                 myView.edit.setOnClickListener(new ButtonEdit_Click(position));
                 myView.cpy.setOnClickListener(new ButtonCopy_Click(position));
-
         }
 
         return convertView;

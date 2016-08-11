@@ -8,17 +8,11 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="cc.ncu.edu.tw.sop_v1.add_new_one"
     tools:showIn="@layout/activity_add_new_one">
-<!--
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="25dp"
-        android:layout_gravity="center"
-        android:id="@+id/showTitle"/>
--->
+
     <ExpandableListView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@id/android:list" />
+        android:id="@id/android:list"
+        android:divider="#00000000"/>
 
 </LinearLayout>

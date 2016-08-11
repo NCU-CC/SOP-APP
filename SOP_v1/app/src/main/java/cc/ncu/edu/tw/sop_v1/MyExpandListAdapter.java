@@ -3,22 +3,14 @@ package cc.ncu.edu.tw.sop_v1;
 import android.content.Context;
 import android.graphics.Color;
 import android.util.Log;
-import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.BaseExpandableListAdapter;
-import android.widget.ListView;
-import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import static cc.ncu.edu.tw.sop_v1.R.drawable.border_shape;
 
 public class MyExpandListAdapter extends BaseExpandableListAdapter
 {
@@ -78,18 +70,15 @@ public class MyExpandListAdapter extends BaseExpandableListAdapter
         }
 
         //決定顏色
-        if(groupPosition % 3==0)
+        if(groupPosition % 2==0)
         {
             row.setBackgroundColor(Color.parseColor("#4F9D9D"));
         }
-        else if(groupPosition % 3==1)
+        else if(groupPosition % 2==1)
         {
             row.setBackgroundColor(Color.parseColor("#95CACA"));
         }
-        else if(groupPosition % 3==2)
-        {
-            row.setBackgroundColor(Color.parseColor("#D1E9E9"));
-        }
+
 
         return row;
     }
@@ -149,19 +138,16 @@ public class MyExpandListAdapter extends BaseExpandableListAdapter
         }
 
         //決定顏色
-        if(groupPosition % 3==0)
+        if(groupPosition % 2==0)
         {
             //row.setBackgroundResource(R.drawable.border_shape);
             row.setBackgroundColor(Color.parseColor("#4F9D9D"));
         }
-        else if(groupPosition % 3==1)
+        else if(groupPosition % 2==1)
         {
             row.setBackgroundColor(Color.parseColor("#95CACA"));
         }
-        else if(groupPosition % 3==2)
-        {
-            row.setBackgroundColor(Color.parseColor("#D1E9E9"));
-        }
+
         return row;
     }
 

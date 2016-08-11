@@ -19,7 +19,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.transform.ErrorListener;
@@ -46,6 +48,10 @@ public class HttpClient
 
     private String PersonName;
 
+    private ArrayList<Map<String,Object>> mList ;
+    private List<Project> projectList ;
+
+    public HttpClient(){}
     //用在DetailStepActivity的HttpClient
     public HttpClient(RequestQueue mQueue)
     {
@@ -86,6 +92,75 @@ public class HttpClient
         public void setPeopleIndex(String name);
     }
 //========================================================================
+
+    public ArrayList<Map<String,Object>> getmList(){return mList;}
+    public List<Project> getProjectList(){return projectList;}
+
+    //初始化project 的listView
+    public void initProjectListView(final MainActivity mainActivity)
+    {
+        StringRequest getinitProjectRequest = new StringRequest("http://140.115.3.188:3000/sop/v1/processes/", new Response.Listener<String>()
+        {
+            @Override
+            public void onResponse(String response)
+            {
+                Log.d("getinitProjRequestSuc", response);
+                projectList = mainActivity.getProjectList();
+                mList = mainActivity.getmList();
+
+
+                try
+                {
+                    JSONArray array = new JSONArray(response);
+
+                    for(int i=0;i<array.length();i++)
+                    {
+                        //初始化project相關的資訊
+                        //mainActivity.getProjectList().add(new Project(i, Integer.parseInt(array.getJSONObject(i).getString("id")), array.getJSONObject(i).getString("name")));
+                        projectList.add(new Project(i, Integer.parseInt(array.getJSONObject(i).getString("id")), array.getJSONObject(i).getString("name")));
+
+                        Map<String,Object> item = new HashMap<>();
+                        item.put("txtView", mainActivity.getProjectList().get(i).getProjectContent());
+                        item.put("delete", R.drawable.delete);
+                        item.put("edit",R.drawable.edit);
+                        item.put("copy", R.drawable.copy);
+                        mList.add(item);
+
+                        mainActivity.setProjectNum(1);
+                    }
+                    //mainActivity.setProjectList(projectList);
+                    //mainActivity.setmList(mList);
+
+
+                } catch (JSONException e)
+                {
+                    e.printStackTrace();
+                }
+
+            }
+        }, new Response.ErrorListener()
+        {
+            @Override
+            public void onErrorResponse(VolleyError error)
+            {
+                Log.e("getinitPrjtRequestErr", error.getMessage(), error);
+            }
+        })
+        {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError
+            {
+                HashMap<String, String> map = new HashMap<String, String>();
+                map.put("X-Ncu-Api-Token", "e763cac7e011b72f1e5d8668cb661070bd130f2109c920a76ca4adb3e540018fcf69115961abae35b0c23a4d27dd7782acce7b75c9dd066053eb0408cb4575b9");
+                return map;
+            }
+        };
+
+        mQueue.add(getinitProjectRequest);
+    }
+
+
+
 
     //刪除平步驟做的調整
     public void putParaDeletChange(int changeindex)
@@ -643,6 +718,7 @@ public class HttpClient
             public void onErrorResponse(VolleyError error)
             {
                 Log.e("putEditErrorHappen", error.getMessage(), error);
+                //Toast.makeText(context, "查無此人員,請重新輸入再上傳", Toast.LENGTH_SHORT).show();
             }
 
         })

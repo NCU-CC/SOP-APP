@@ -8,6 +8,7 @@ import android.content.res.ColorStateList;
 import android.content.res.XmlResourceParser;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
@@ -91,10 +92,6 @@ public class add_new_one extends ExpandableListActivity
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
-        //初始化groupList  child2DList
-        //groupList.clear();
-        //childList2D.clear();
-
         getDelegate().installViewFactory();
         getDelegate().onCreate(savedInstanceState);
         getDelegate().setContentView(R.layout.activity_add_new_one);
@@ -102,149 +99,10 @@ public class add_new_one extends ExpandableListActivity
 
         mExpandableListView = getExpandableListView();
 
-
-
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionbar(toolbar);
         getDelegate().getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab_add_new_one);
-        fab.setOnClickListener(new View.OnClickListener()
-        {
-            @Override
-            public void onClick(View view)
-            {
-                if(ACCESS_TOKEN.length()==0)
-                {
-                    Toast.makeText(mContext,"必須先登入才能新增步驟",Toast.LENGTH_SHORT).show();
-                }
-                else
-                {
-                    final View dialogLayout = LayoutInflater.from(add_new_one.this).inflate(R.layout.add_step_dialog, null);
-                    AlertDialog.Builder builder = new AlertDialog.Builder(add_new_one.this);
-                    builder.setTitle("新增步驟");
-                    builder.setView(dialogLayout);
-                    builder.setCancelable(false);
-
-                    builder.setPositiveButton("確定", new DialogInterface.OnClickListener()
-                    {
-                        EditText mEdtStepName;
-                        //EditText mEdtStepExam;
-                        //Spinner mSelectUnit;
-                        //EditText mEdtPeople;
-                        //Spinner mSelectPlace;
-
-                        public void onClick(DialogInterface dialog, int id)
-                        {
-                            mEdtStepName = (EditText) ((AlertDialog) dialog).findViewById(R.id.edtStepName);
-                            //mEdtStepExam = (EditText) ((AlertDialog) dialog).findViewById(R.id.edtStepExam);
-                            //mSelectUnit = (Spinner) ((AlertDialog) dialog).findViewById(R.id.units_spinner);
-                            //mEdtPeople = (EditText) ((AlertDialog) dialog).findViewById(R.id.edtPeople);
-                            //mSelectPlace = (Spinner) ((AlertDialog) dialog).findViewById(R.id.places_spinner);
-
-
-                            StepCount++;
-
-
-                            e[index] = new Step(groupList.size() + 1, 0, mEdtStepName.getText().toString(),Flow_id,0);
-                            //e[index].setContent(mEdtStepExam.getText().toString(), mSelectUnit.getSelectedItem().toString(), mEdtPeople.getText().toString(), mSelectPlace.getSelectedItem().toString());
-                            index++;
-
-                            Map<String, Object> group = new HashMap<>();
-                            group.put(ITEM_NAME, mEdtStepName.getText().toString());
-                            groupList.add(group);
-
-                            List<Map<String, String>> childList = new ArrayList<>();
-
-                            childList2D.add(childList);
-
-                            //設定MyExpandListAdapter
-                            initData();
-
-
-/*
-                        //設定ExpandableListAdapter
-                        mExpaListAdap = new SimpleExpandableListAdapter(add_new_one.this, groupList, android.R.layout.simple_expandable_list_item_2, new String[]{ITEM_NAME}
-                                , new int[]{android.R.id.text1}, childList2D, android.R.layout.simple_expandable_list_item_2, new String[]{ITEM_SUBNAME},
-                                new int[]{android.R.id.text1});
-                        mExpaListView.setAdapter(mExpaListAdap);
-*/
-
-
-
-                            //===========================================================================//
-                            //新增步驟到後端(post)
-                            StringRequest postRequest = new StringRequest(Request.Method.POST, "http://140.115.3.188:3000/sop/v1/steps", new Response.Listener<String>()
-                            {
-                                @Override
-                                public void onResponse(String response)
-                                {
-                                    try
-                                    {
-                                        JSONObject object =new JSONObject(response);
-                                        Log.d("postSuccessful", response);
-                                        e[StepCount-1].setId(Integer.parseInt(object.getString("id")));
-
-                                    }
-                                    catch (JSONException e)
-                                    {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            }, new Response.ErrorListener()
-                            {
-                                public void onErrorResponse(VolleyError error)
-                                {
-                                    Log.e("postErrorHappen", error.getMessage(), error);
-                                }
-
-                            })
-                            {
-                                public Map<String, String> getHeaders() throws AuthFailureError
-                                {
-                                    Map<String, String> map = new HashMap<String, String>();
-                                    map.put("Authorization", "Bearer"+" "+ACCESS_TOKEN);
-                                    return map;
-                                }
-
-
-                                public Map<String, String> getParams() throws AuthFailureError
-                                {
-                                    Map<String, String> map = new HashMap<String, String>();
-                                    map.put("action", mEdtStepName.getText().toString());
-                                    //map.put("items", mEdtStepExam.getText().toString());
-                                    map.put("items", "");
-                                    map.put("prev", Integer.toString(groupList.size()));
-                                    map.put("next", Integer.toString(0));
-                                    map.put("Flow_id", Integer.toString(Flow_id));
-                                    //map.put("PersonId", mEdtPeople.getText().toString());
-                                    map.put("PersonId", "0");
-                                    //map.put("UnitId", mSelectUnit.getSelectedItem().toString());
-                                    map.put("UnitId", "A100");
-                                    //map.put("PlaceId", mSelectPlace.getSelectedItem().toString());
-                                    map.put("PlaceId", "1");
-                                    return map;
-                                }
-                            };
-
-                            mQueue.add(postRequest);
-                        }
-                    });
-
-                    builder.setNegativeButton("取消", new DialogInterface.OnClickListener()
-                    {
-                        public void onClick(DialogInterface dialog, int id)
-                        {
-
-                        }
-                    });
-
-                    AlertDialog alert = builder.create();
-                    alert.show();
-                }
-
-            }
-        });
 
         //初始化mQueue
         mQueue = Volley.newRequestQueue(add_new_one.this);
@@ -255,6 +113,124 @@ public class add_new_one extends ExpandableListActivity
         Flow_id = bundle.getInt("Flow_id");
         ACCESS_TOKEN = bundle.getString("Access_token");
         getDelegate().setTitle(bundle.getString("selectProject"));
+
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab_add_new_one);
+
+        if(ACCESS_TOKEN.length()!=0)
+        {
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view)
+                {
+                        final View dialogLayout = LayoutInflater.from(add_new_one.this).inflate(R.layout.add_step_dialog, null);
+                        AlertDialog.Builder builder = new AlertDialog.Builder(add_new_one.this);
+                        builder.setTitle("新增步驟");
+                        builder.setView(dialogLayout);
+                        builder.setCancelable(false);
+
+                        builder.setPositiveButton("確定", new DialogInterface.OnClickListener() {
+                            EditText mEdtStepName;
+
+                            public void onClick(DialogInterface dialog, int id)
+                            {
+                                mEdtStepName = (EditText) ((AlertDialog) dialog).findViewById(R.id.edtStepName);
+
+                                StepCount++;
+
+
+                                e[index] = new Step(groupList.size() + 1, 0, mEdtStepName.getText().toString(), Flow_id, 0);
+                                //e[index].setContent(mEdtStepExam.getText().toString(), mSelectUnit.getSelectedItem().toString(), mEdtPeople.getText().toString(), mSelectPlace.getSelectedItem().toString());
+                                index++;
+
+                                Map<String, Object> group = new HashMap<>();
+                                group.put(ITEM_NAME, mEdtStepName.getText().toString());
+                                groupList.add(group);
+
+                                List<Map<String, String>> childList = new ArrayList<>();
+
+                                childList2D.add(childList);
+
+                                //設定MyExpandListAdapter
+                                initData();
+
+                                //新增步驟到後端(post)
+                                StringRequest postRequest = new StringRequest(Request.Method.POST, "http://140.115.3.188:3000/sop/v1/steps", new Response.Listener<String>()
+                                {
+                                    @Override
+                                    public void onResponse(String response)
+                                    {
+                                        try
+                                        {
+                                            JSONObject object = new JSONObject(response);
+                                            Log.d("postSuccessful", response);
+                                            e[StepCount - 1].setId(Integer.parseInt(object.getString("id")));
+
+                                        } catch (JSONException e)
+                                        {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                }, new Response.ErrorListener() {
+                                    public void onErrorResponse(VolleyError error)
+                                    {
+                                        Log.e("postErrorHappen", error.getMessage(), error);
+                                    }
+
+                                })
+                                {
+                                    public Map<String, String> getHeaders() throws AuthFailureError
+                                    {
+                                        Map<String, String> map = new HashMap<>();
+                                        map.put("Authorization", "Bearer" + " " + ACCESS_TOKEN);
+                                        return map;
+                                    }
+
+
+                                    public Map<String, String> getParams() throws AuthFailureError
+                                    {
+                                        Map<String, String> map = new HashMap<>();
+                                        map.put("action", mEdtStepName.getText().toString());
+                                        map.put("items", "");
+                                        map.put("prev", Integer.toString(groupList.size()));
+                                        map.put("next", Integer.toString(0));
+                                        map.put("Flow_id", Integer.toString(Flow_id));
+                                        map.put("PersonId", "0");
+                                        map.put("UnitId", "A100");
+                                        map.put("PlaceId", "1");
+
+                                        return map;
+                                    }
+                                };
+
+                                mQueue.add(postRequest);
+                            }
+                        });
+
+                        builder.setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id)
+                            {
+
+                            }
+                        });
+
+                        AlertDialog alert = builder.create();
+                        alert.show();
+
+
+                }
+            });
+
+        }
+        else
+        {
+            CoordinatorLayout.LayoutParams p = (CoordinatorLayout.LayoutParams) fab.getLayoutParams();
+            p.setAnchorId(View.NO_ID);
+            fab.setLayoutParams(p);
+            fab.setVisibility(View.GONE);
+        }
+
+
+
 
 
         //從後端載入(get)資料
@@ -386,6 +362,7 @@ public class add_new_one extends ExpandableListActivity
         //註冊能夠接收Context Menu事件的元件
         registerForContextMenu(mExpandableListView);
         mContext = add_new_one.this;
+
 
 
         //設判斷長按父層或子層的監聽器
@@ -551,10 +528,6 @@ private void initData()
 
                         builder.setPositiveButton("確定", new DialogInterface.OnClickListener() {
                             EditText mEdtStepName;
-                            //EditText mEdtStepExam;
-                            //Spinner mSelectUnit;
-                            //EditText mEdtPeople;
-                            //Spinner mSelectPlace;
 
                             //暫時紀錄第幾個step的順序要改變
                             int temp;
@@ -563,16 +536,8 @@ private void initData()
                             public void onClick(DialogInterface dialog, int id)
                             {
                                 mEdtStepName = (EditText) ((AlertDialog) dialog).findViewById(R.id.edtStepName);
-                                //mEdtStepExam = (EditText) ((AlertDialog) dialog).findViewById(R.id.edtStepExam);
-                                //mSelectUnit = (Spinner) ((AlertDialog) dialog).findViewById(R.id.units_spinner);
-                                //mEdtPeople = (EditText) ((AlertDialog) dialog).findViewById(R.id.edtPeople);
-                                //mSelectPlace = (Spinner) ((AlertDialog) dialog).findViewById(R.id.places_spinner);
-
-
                                 e[index] = new Step(groupPosition, childPosition + 1, mEdtStepName.getText().toString(), Flow_id, 0);
-                                //e[index].setContent(mEdtStepExam.getText().toString(), mSelectUnit.getSelectedItem().toString(), mEdtPeople.getText().toString(), mSelectPlace.getSelectedItem().toString());
                                 index++;
-
 
                                 //新增一般步驟後post到後端的動作
                                 StringRequest postRequest = new StringRequest(Request.Method.POST, "http://140.115.3.188:3000/sop/v1/steps", new Response.Listener<String>()
@@ -654,19 +619,16 @@ private void initData()
 
                                 //設定MyExpandListAdapter
                                 initData();
-/*
-                        //設定Adapter
-                        mExpaListAdap = new SimpleExpandableListAdapter(mContext, groupList, android.R.layout.simple_expandable_list_item_2, new String[]{ITEM_NAME}
-                                , new int[]{android.R.id.text1}, childList2D, android.R.layout.simple_expandable_list_item_2, new String[]{ITEM_SUBNAME}, new int[]{android.R.id.text1});
-                        mExpaListView.setAdapter(mExpaListAdap);
-*/
-                                Log.v("childList2DSize", Integer.toString(childList2D.size()));
 
+                                Log.v("childList2DSize", Integer.toString(childList2D.size()));
                                 Log.v("groupListSize", Integer.toString(groupList.size()));
 
-                                for (int n = 0; n < groupList.size(); n++) {
+                                /*
+                                for (int n = 0; n < groupList.size(); n++)
+                                {
                                     Log.v("childList" + Integer.toString(n) + "Size", Integer.toString(childList2D.get(n).size()));
                                 }
+                                */
                             }
                         });
 
@@ -887,21 +849,15 @@ private void initData()
                                 //設定MyExpandListAdapter
                                 initData();
 
-/*
-                        //設定Adapter
-                        mExpaListAdap = new SimpleExpandableListAdapter(mContext, groupList, android.R.layout.simple_expandable_list_item_2, new String[]{ITEM_NAME}
-                                , new int[]{android.R.id.text1, R.drawable.parallel}, childList2D, android.R.layout.simple_expandable_list_item_2, new String[]{ITEM_SUBNAME}, new int[]{android.R.id.text1});
-                        mExpaListView.setAdapter(mExpaListAdap);
-*/
-
                                 Log.v("childList2DSize", Integer.toString(childList2D.size()));
-
                                 Log.v("groupListSize", Integer.toString(groupList.size()));
 
+                                /*
                                 for(int n=0;n<groupList.size();n++)
                                 {
                                     Log.v("childList"+Integer.toString(n)+"Size",Integer.toString(childList2D.get(n).size()));
                                 }
+                                */
                             }
 
                         });
@@ -1073,12 +1029,6 @@ private void initData()
                                     //設定MyExpandListAdapter
                                     initData();
 
-/*
-                            //設定Adapter
-                            mExpaListAdap = new SimpleExpandableListAdapter(mContext, groupList, android.R.layout.simple_expandable_list_item_2, new String[]{ITEM_NAME}
-                                    , new int[]{android.R.id.text1, R.drawable.parallel}, childList2D, android.R.layout.simple_expandable_list_item_2, new String[]{ITEM_SUBNAME}, new int[]{android.R.id.text1});
-                            mExpaListView.setAdapter(mExpaListAdap);
-*/
                                 }
 
 
@@ -1166,15 +1116,6 @@ private void initData()
 
                                     //設定MyExpandListAdapter
                                     initData();
-
-
-
-/*
-                            //設定Adapter
-                            mExpaListAdap = new SimpleExpandableListAdapter(mContext, groupList, android.R.layout.simple_expandable_list_item_2, new String[]{ITEM_NAME}
-                                    , new int[]{android.R.id.text1, R.drawable.parallel}, childList2D, android.R.layout.simple_expandable_list_item_2, new String[]{ITEM_SUBNAME}, new int[]{android.R.id.text1});
-                            mExpaListView.setAdapter(mExpaListAdap);
-*/
                                 }
 
 

@@ -84,6 +84,10 @@ public class DetailStepActivity extends AppCompatActivity
 
     private String[] PeopleName;
 
+    //判斷有沒有輸入名單中使用者的flag
+    private boolean userInSchoolFlag =true;
+
+
     @Override
 
     protected void onCreate(Bundle savedInstanceState)
@@ -425,13 +429,22 @@ public class DetailStepActivity extends AppCompatActivity
 
                                             people_id = Integer.parseInt(array.getJSONObject(i).getString("id"));
                                             HttpClient httpClient =new HttpClient(mQueue);
-                                            Log.v("LookupParam","Unit_no :"+unit_no+" places_id :"+places_id);
-                                            httpClient.putEditStepResult(DetailStepActivity.this, stepExamine.getText().toString(), Integer.toString(people_id) , unit_no ,places_id , ACCESS_TOKEN , stepID);
+                                            Log.v("LookupParam", "Unit_no :" + unit_no + " places_id :" + places_id);
+                                            httpClient.putEditStepResult(DetailStepActivity.this, stepExamine.getText().toString(), Integer.toString(people_id), unit_no, places_id, ACCESS_TOKEN, stepID);
 
+                                            userInSchoolFlag = false;
                                             break;
                                         }
 
+
                                     }
+
+                                    if(userInSchoolFlag)
+                                    {
+                                        Toast.makeText(DetailStepActivity.this, "查無此人員,請重新輸入再上傳", Toast.LENGTH_SHORT).show();
+                                    }
+
+                                    userInSchoolFlag = true;
 
                                 }
                                 catch(JSONException e)
@@ -460,6 +473,7 @@ public class DetailStepActivity extends AppCompatActivity
                         mQueue.add(getPeopleRequest);
 
                     }
+
 
                     break;
 
