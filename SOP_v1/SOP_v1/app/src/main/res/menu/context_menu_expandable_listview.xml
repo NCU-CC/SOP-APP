@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--
+    <item android:id="@+id/contextMenuItemLook"
+        android:title="查看此步驟"/>
+-->
+    <item android:id="@+id/contextMenuItemAddParallel"
+        android:title="新增平行步驟"/>
+<!--
+    <item android:id="@+id/contextMenuItemAddCommon"
+        android:title="新增單一步驟"/>
+-->
+    <item android:id="@+id/contextMenuItemDelete"
+        android:title="刪除步驟"/>
+
+    <item android:id="@+id/contextMenuItemEdit"
+        android:title="編輯步驟名稱"/>
+
+    <item android:id="@+id/contextMenuItemMoveUp"
+        android:title="上移一層"/>
+
+    <item android:id="@+id/contextMenuItemMoveDown"
+        android:title="下移一層"/>
+
+</menu>

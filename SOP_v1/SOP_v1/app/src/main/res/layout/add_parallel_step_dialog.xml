@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="單一步驟名稱:"/>
+
+    <EditText
+        android:id="@+id/edtParallelStep1Name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+<!--
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="平行步驟2:"/>
+
+    <EditText
+        android:id="@+id/edtParallelStep2Name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="平行步驟3:"/>
+
+    <EditText
+        android:id="@+id/edtParallelStep3Name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="平行步驟4:"/>
+
+    <EditText
+        android:id="@+id/edtParallelStep4Name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="平行步驟5:"/>
+
+    <EditText
+        android:id="@+id/edtParallelStep5Name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+        -->
+</LinearLayout>
