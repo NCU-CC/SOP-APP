@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="cc.ncu.edu.tw.sop_v1.add_new_one"
+    tools:context=".AddNewOneActivity"
     tools:showIn="@layout/activity_add_new_one">
 
     <ExpandableListView

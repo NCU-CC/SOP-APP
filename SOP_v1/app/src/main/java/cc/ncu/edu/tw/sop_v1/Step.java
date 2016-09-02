@@ -42,6 +42,7 @@ public class Step implements Serializable
     public void setLayer(int j){layer+=j;}
 
     public String getContent() {return content;}
+    public void setProjectContent(String projectName){content = projectName;}
     public void setContent(String item,String unit,String person,String place)
     {
         this.item = item;

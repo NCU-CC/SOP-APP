@@ -35,7 +35,12 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/listView"
-            android:layout_centerVertical="true" />
+            android:layout_centerVertical="true"
+             android:paddingBottom="50dp"
+             android:clipToPadding="false"
+             />
+
+            <!--android:paddingBottom="50dp"-->
 
         </android.support.v4.widget.SwipeRefreshLayout>
 

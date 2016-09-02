@@ -14,4 +14,6 @@ public class MyView
     public ImageButton edit;
     public ImageButton cpy;
 
+    public String creatorId;
+    public String getCreatorId(){return creatorId;}
 }

@@ -87,6 +87,7 @@ public class DetailStepActivity extends AppCompatActivity
     //判斷有沒有輸入名單中使用者的flag
     private boolean userInSchoolFlag =true;
 
+    private boolean isEditable;
 
     @Override
 
@@ -124,6 +125,7 @@ public class DetailStepActivity extends AppCompatActivity
         stepID = bundle.getInt("StepID");
         ACCESS_TOKEN =bundle.getString("ACCESS_TOKEN");
         setTitle(bundle.getString("selectProjectAndStep"));
+        isEditable = bundle.getBoolean("isEditable");
 
         //到後端去get 資料
         StringRequest apiRequest = new StringRequest("http://140.115.3.188:3000/sop/v1/steps/"+Integer.toString(stepID), new Response.Listener<String>()
@@ -155,7 +157,8 @@ public class DetailStepActivity extends AppCompatActivity
 
                     //載入地點
                     httpClientGetPlacesIndex.ToPlacesIndexInSpinner(Integer.parseInt(object.getString("PlaceId")), new HttpClient.GetPlacesResponseListener() {
-                        public void setPlacesSpinnerIndex(int index) {
+                        public void setPlacesSpinnerIndex(int index)
+                        {
                             placesIndexM = index;
                             Log.v("placesIndexM", Integer.toString(placesIndexM));
                             //設定placesSpinner
@@ -359,7 +362,8 @@ public class DetailStepActivity extends AppCompatActivity
     };
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
         switch (item.getItemId())
         {
             case android.R.id.home:
@@ -374,7 +378,6 @@ public class DetailStepActivity extends AppCompatActivity
         @Override
         public boolean onMenuItemClick(MenuItem menuItem)
         {
-
             switch (menuItem.getItemId())
             {
                 case R.id.action_edit:
@@ -496,6 +499,10 @@ public class DetailStepActivity extends AppCompatActivity
         if(ACCESS_TOKEN.length()==0)
         {
             //未登入所以沒有
+        }
+        else if (!isEditable)
+        {
+            //非使用者所以沒有
         }
         else
         {

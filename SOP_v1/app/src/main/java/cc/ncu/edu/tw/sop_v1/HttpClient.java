@@ -50,12 +50,20 @@ public class HttpClient
 
     private ArrayList<Map<String,Object>> mList ;
     private List<Project> projectList ;
+    private String copiedProjectName;
 
     public HttpClient(){}
     //用在DetailStepActivity的HttpClient
     public HttpClient(RequestQueue mQueue)
     {
         this.mQueue = mQueue;
+    }
+
+    public HttpClient(RequestQueue mQueue,String accessToken,String copiedProjectName)
+    {
+        this.mQueue = mQueue;
+        ACCESS_TOKEN = accessToken;
+        this.copiedProjectName =copiedProjectName;
     }
 
     //用在MyAdapter中的HttpClient
@@ -95,7 +103,7 @@ public class HttpClient
 
     public ArrayList<Map<String,Object>> getmList(){return mList;}
     public List<Project> getProjectList(){return projectList;}
-
+/*
     //初始化project 的listView
     public void initProjectListView(final MainActivity mainActivity)
     {
@@ -117,7 +125,7 @@ public class HttpClient
                     {
                         //初始化project相關的資訊
                         //mainActivity.getProjectList().add(new Project(i, Integer.parseInt(array.getJSONObject(i).getString("id")), array.getJSONObject(i).getString("name")));
-                        projectList.add(new Project(i, Integer.parseInt(array.getJSONObject(i).getString("id")), array.getJSONObject(i).getString("name")));
+                        projectList.add(new Project(i, Integer.parseInt(array.getJSONObject(i).getString("id")), array.getJSONObject(i).getString("name"),));
 
                         Map<String,Object> item = new HashMap<>();
                         item.put("txtView", mainActivity.getProjectList().get(i).getProjectContent());
@@ -158,7 +166,7 @@ public class HttpClient
 
         mQueue.add(getinitProjectRequest);
     }
-
+*/
 
 
 
@@ -459,7 +467,7 @@ public class HttpClient
 
 
     //post複製的專案到後端並取得專案的ID (步驟的Flow id)
-    public void searchCopyStepAndPost(final String copyProjectName,final searchCopyStepAndPostListener searchCopyStepAndPostListener)
+    public void postCopiedProjectAndGetId(final String copyProjectName, final searchCopyStepAndPostListener searchCopyStepAndPostListener)
     {
         StringRequest postCopyProjectRequest = new StringRequest(Request.Method.POST, "http://140.115.3.188:3000/sop/v1/processes/", new Response.Listener<String>() {
             @Override
@@ -468,8 +476,8 @@ public class HttpClient
                 try
                 {
                     Log.d("postProjectRequestSucce", response);
-                    JSONObject object =new JSONObject(response);
-                    searchCopyStepAndPostListener.getCopyPostProjectId(Integer.parseInt(object.getString("id").toString()));
+                    JSONArray array =new JSONArray(response);
+                    searchCopyStepAndPostListener.getCopyPostProjectId(Integer.parseInt(array.getJSONObject(0).getString("id").toString()));
 
                 } catch (JSONException e)
                 {
